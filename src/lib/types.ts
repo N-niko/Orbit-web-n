@@ -10,6 +10,12 @@ export interface Profile {
   year: string;
   bio: string;
   color: string;
+  graduationYear?: number | null;
+  residency?: "commuter" | "resident" | null;
+  residenceHall?: string | null;
+  avatarPath?: string | null;
+  avatarUrl?: string;
+  onboardingCompletedAt?: string | null;
 }
 
 export interface Comment {

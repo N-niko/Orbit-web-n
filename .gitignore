@@ -4,6 +4,7 @@ out/
 .env*
 !.env.example
 .vercel/
+supabase/.temp/
 coverage/
 *.tsbuildinfo
 *.log

@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). You can explore the labeled demo without an account or environment variables. Its people and activity are fictional; demo actions stay in your browser and never connect to another person’s workspace. Demo data does not migrate into a real account.
+Open [localhost:3000](http://localhost:3000). Login is the landing page. Connect Supabase below to enable accounts. The dashboard is available after login and one-time account setup; fictional demo data is no longer shown to signed-out visitors.
 
 To check or run a production build:
 
@@ -30,7 +30,7 @@ npm start
 ## Connect the backend
 
 1. Create a [Supabase project](https://supabase.com/dashboard).
-2. Open the project’s SQL Editor. Run the entire [initial migration](supabase/migrations/202610180001_orbit.sql) once against a new project. It creates the tables, row level security policies, account initialization trigger, and database functions used by the API. Keep the migration in Git so future environments use the same schema.
+2. Open the project’s SQL Editor. Run the entire [initial migration](supabase/migrations/202610180001_orbit.sql) once against a new project, then [account onboarding](supabase/migrations/20261019233742_account_onboarding.sql). Existing Orbit databases only need the onboarding migration. These create the tables, access rules, account initialization trigger, database functions, and private photo bucket. Run migrations in filename order, once each.
 3. Copy `.env.example` to `.env.local` and enter your project values:
 
    ```dotenv
@@ -40,7 +40,10 @@ npm start
 
    The variable is named `ANON_KEY` for compatibility; a Supabase public publishable key is also accepted. Use the public project key, never a service-role or secret key. Public keys are intended for browser use, while database policies enforce access. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
 4. In Supabase **Authentication → URL Configuration**, set the local Site URL to `http://localhost:3000` and add both `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/recovery` to allowed redirect URLs. Keep the Email provider enabled. This app uses the default confirmation email flow and exchanges its PKCE code at `/auth/callback`; no custom email template is required. See [Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls).
-5. Restart the development server. Choose **Make it your Orbit → Create an account**. If email confirmation is enabled, open the confirmation link in the same browser to finish signing in.
+5. Restart the development server. Choose **Create an account** and enter your name, any valid email, password, major, and graduation year. Passwords require at least 8 characters, an uppercase letter, a number, and a non-whitespace special character. The signup API checks these rules on the server. Also configure Supabase Auth's password-strength settings so direct Auth API calls have equivalent protection (its strongest built-in character option also requires lowercase).
+6. If email confirmation is enabled, open the confirmation link in the same browser. Complete campus-life setup (commuter, or resident with a required hall), then optionally upload a JPG/PNG/WebP photo up to 5 MB. Existing accounts also complete these new setup steps once. Progress is stored in the database; completed accounts go straight to the dashboard on future logins. Email confirmation and password recovery for ordinary users require a configured SMTP provider; Supabase's default mail service is restricted to organization team addresses.
+
+Residence halls follow [Caldwell’s official list](https://www.caldwell.edu/residence-life/residence-halls/): Mother Joseph Residence Hall, Dominican Hall, and Rosary Hall. Residency is self-reported and does not grant extra access. Workspace membership still controls shared profiles, tasks, bills, and photos. Verified residence-based permissions are a later feature. The photo bucket is private; signed URLs last one hour and profiles use initials if a photo cannot load.
 
 New accounts begin with an empty workspace called “My Orbit.” Create a workspace or copy its invite code from the roommate workspace settings. Another signed-in user can enter that code to join. Copying a code does not send an email or invitation. Joining or creating a workspace switches the active workspace; all activity shown belongs to the active workspace.
 
@@ -77,7 +80,7 @@ No GitHub repository, Supabase project, or Vercel deployment is created by this 
 - Expense tracking with equal split estimates across current workspace members.
 - Event creation, categories, and RSVP tracking.
 - Student profiles and workspace creation or joining by code.
-- Demo mode for trying the interface without backend configuration.
+- Login landing page and one-time profile, housing, and optional photo setup.
 
 Expense balances are tracking estimates, and no money is transferred. Campus posts and events are member-created; Orbit has no university systems integration. The app does not send workspace invitations, direct messages, calendar invitations, or push notifications. Updates load on actions and refresh; shared data also refreshes every 30 seconds while the tab is visible; there is no realtime subscription. This version uses one active workspace at a time and does not include a workspace switcher or invite-code rotation.
 
@@ -87,7 +90,7 @@ Expense balances are tracking estimates, and no money is transferred. Campus pos
 
 ## Troubleshooting
 
-- **Demo appears instead of your account:** confirm the Supabase environment values, restart locally or redeploy on Vercel, and sign in.
+- **Accounts are unavailable:** confirm the Supabase environment values, restart locally or redeploy on Vercel, and sign in.
 - **A database function is missing:** run the migration in the same Supabase project referenced by your environment variables.
 - **Email returns to the wrong domain:** check the Supabase Site URL and allowed callback URL, then request a new confirmation email. Confirm that the deployed environment variables match the deployment.
 - **An invite code fails:** copy all 12 letters/numbers from a real workspace. Demo codes cannot connect real accounts.

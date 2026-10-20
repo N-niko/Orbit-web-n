@@ -13,7 +13,7 @@ export function databaseError(error: { code?: string; message?: string }) {
   if (error.code === "22023" || error.code === "22P02" || error.code === "22007" || error.code === "23514") {
     return privateJson({ error: "Some details are invalid. Please check them and try again." }, 400);
   }
-  if (error.code === "PGRST202" || error.code === "42P01") {
+  if (error.code === "PGRST202" || error.code === "PGRST205" || error.code === "42P01") {
     return privateJson({ error: "The database needs setup. Apply the SQL migration in supabase/migrations." }, 503);
   }
   // Never return database internals or private row values to the browser.

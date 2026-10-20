@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 
 // Run the actual migration and access assertions in disposable PostgreSQL.
@@ -16,10 +16,27 @@ try {
     $$;
     grant usage on schema auth to anon, authenticated;
     grant execute on function auth.uid() to anon, authenticated;
+    create schema storage;
+    create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+    create table storage.objects (id uuid default gen_random_uuid(), bucket_id text references storage.buckets(id), name text, primary key(bucket_id,name));
+    create function storage.foldername(text) returns text[] language sql immutable as $$
+      select (string_to_array($1, '/'))[1:array_length(string_to_array($1, '/'), 1)-1];
+    $$;
+    alter table storage.objects enable row level security;
+    grant usage on schema storage to authenticated;
+    grant select, insert, delete on storage.objects to authenticated;
+    grant execute on function storage.foldername(text) to authenticated;
   `);
-  await db.exec(await readFile(new URL("../supabase/migrations/202610180001_orbit.sql", import.meta.url), "utf8"));
+  const migrations = new URL("../supabase/migrations/", import.meta.url);
+  for (const name of (await readdir(migrations)).filter(name => name.endsWith(".sql")).sort()) {
+    await db.exec(await readFile(new URL(name, migrations), "utf8"));
+  }
   await db.exec(await readFile(new URL("../supabase/tests/orbit_security.sql", import.meta.url), "utf8"));
-  console.log("Database checks passed: migration, workspace isolation, anonymous access, invite joins, authenticated identity, shared task updates, likes, RSVPs, and creator-only deletion.");
+  await db.exec(await readFile(new URL("../supabase/tests/orbit_onboarding.sql", import.meta.url), "utf8"));
+  console.log("Database checks passed: all migrations, workspace security, resumable onboarding, housing validation, durable completion, and private avatar ownership/workspace access. Storage uses a local schema shim; hosted uploads still need a live account test.");
+} catch (error) {
+  console.error("Database check failed:", error.message, error.detail || "", error.where || "");
+  process.exitCode = 1;
 } finally {
   await db.close();
 }

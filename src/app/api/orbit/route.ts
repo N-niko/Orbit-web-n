@@ -1,6 +1,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { databaseError, privateJson } from "@/lib/server/responses";
 import { hasAllowedOrigin, orbitActionSchema } from "@/lib/server/validation";
+import { withAvatars } from "@/lib/server/avatars";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function GET() {
   if (auth.response) return auth.response;
   const { data, error } = await auth.client.rpc("orbit_get_data");
   if (error) return databaseError(error);
-  return privateJson(data);
+  return privateJson(await withAvatars(auth.client, data));
 }
 
 export async function POST(request: Request) {
@@ -42,5 +43,5 @@ export async function POST(request: Request) {
   if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message ?? "Check your form details." }, 400);
   const { data, error } = await auth.client.rpc("orbit_mutate", { p_action: parsed.data });
   if (error) return databaseError(error);
-  return privateJson(data);
+  return privateJson(await withAvatars(auth.client, data));
 }

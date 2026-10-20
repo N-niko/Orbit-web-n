@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { OrbitAction, OrbitData, Profile } from "@/lib/types";
 
@@ -45,8 +45,9 @@ export function ViewModal({ title, description, onClose, children, busy = false 
 }
 
 export function MemberAvatar({ profile, small = false }: { profile: Profile; small?: boolean }) {
+  const [failedUrl, setFailedUrl] = useState<string | undefined>();
   return <span className={`avatar secondary-avatar${small ? " secondary-avatar-small" : ""}`} style={{ backgroundColor: profile.color || "#e9e3ff" }} title={profile.name} aria-label={profile.name}>
-    {profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+    {profile.avatarUrl && profile.avatarUrl !== failedUrl ? <img src={profile.avatarUrl} alt="" onError={() => setFailedUrl(profile.avatarUrl)} /> : profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
   </span>;
 }
 
