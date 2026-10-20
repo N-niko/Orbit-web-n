@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export function GET() {
-  return NextResponse.json({ status: "ok", service: "orbit", databaseConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) }, { headers: { "Cache-Control": "no-store" } });
+  const { url, key } = getSupabaseConfig();
+  return NextResponse.json({ status: "ok", service: "orbit", databaseConfigured: Boolean(url && key),
+    configuration: { urlPresent: Boolean(url), publicKeyPresent: Boolean(key) },
+  }, { headers: { "Cache-Control": "no-store" } });
 }

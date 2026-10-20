@@ -35,10 +35,10 @@ npm start
 
    ```dotenv
    NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_PUBLISHABLE_KEY
    ```
 
-   The variable is named `ANON_KEY` for compatibility; a Supabase public publishable key is also accepted. Use the public project key, never a service-role or secret key. Public keys are intended for browser use, while database policies enforce access. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
+   Both `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` are supported; the publishable-key variable takes precedence if both are set. Use the public project key, never a service-role or secret key. Public keys are intended for browser use, while database policies enforce access. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
 4. In Supabase **Authentication → URL Configuration**, set the local Site URL to `http://localhost:3000` and add both `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/recovery` to allowed redirect URLs. Keep the Email provider enabled. This app uses the default confirmation email flow and exchanges its PKCE code at `/auth/callback`; no custom email template is required. See [Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls).
 5. Restart the development server. Choose **Create an account** and enter your name, any valid email, password, major, and graduation year. Passwords require at least 8 characters, an uppercase letter, a number, and a non-whitespace special character. The signup API checks these rules on the server. Also configure Supabase Auth's password-strength settings so direct Auth API calls have equivalent protection (its strongest built-in character option also requires lowercase).
 6. If email confirmation is enabled, open the confirmation link in the same browser. Complete campus-life setup (commuter, or resident with a required hall), then optionally upload a JPG/PNG/WebP photo up to 5 MB. Existing accounts also complete these new setup steps once. Progress is stored in the database; completed accounts go straight to the dashboard on future logins. Email confirmation and password recovery for ordinary users require a configured SMTP provider; Supabase's default mail service is restricted to organization team addresses.
@@ -96,6 +96,7 @@ Expense balances are tracking estimates, and no money is transferred. Campus pos
 ## Troubleshooting
 
 - **Accounts are unavailable:** confirm the Supabase environment values, restart locally or redeploy on Vercel, and sign in.
+- **“Accounts are temporarily unavailable” on Vercel:** set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the project's Production environment, then redeploy. Browser values are included at build time, so saving settings alone does not update an existing deployment. `/api/health` reports whether the URL and public key are present, without exposing their values.
 - **A database function is missing:** run the migration in the same Supabase project referenced by your environment variables.
 - **Local login works, but Vercel says the database needs setup:** check that Vercel's `NEXT_PUBLIC_SUPABASE_URL` and public key refer to the Supabase project where you ran the migrations. A different project can accept sign-ins but still lack Orbit's tables and functions. Either configure Vercel to use the existing Orbit database and redeploy, or apply both migrations in order to the intended production database. Supabase accounts and data do not transfer between projects automatically. Do not rerun the initial migration against an already-configured database.
 - **Email returns to the wrong domain:** check the Supabase Site URL and allowed callback URL, then request a new confirmation email. Confirm that the deployed environment variables match the deployment.
