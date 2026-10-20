@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUpRight, Bell, CalendarDays, Check, ChevronRight, CircleHelp, Compass, Copy, GraduationCap, Heart, Home, LogOut, Menu, MessageCircle, Moon, Orbit, Plus, Search, Send, Settings2, Sparkles, Sun, Users, X } from "lucide-react";
 import type { OrbitAction, OrbitData, Post, PostCategory } from "@/lib/types";
+import { applyDemoAction, createDemoData } from "@/lib/demo";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { RoommatesView } from "./roommates";
 import { EventsView } from "./events";
@@ -23,8 +24,13 @@ async function getOnlineData(action?: OrbitAction): Promise<OrbitData> {
 }
 
 export function OrbitApp() {
-  const [data, setData] = useState<OrbitData | null>(null);
-  const dataRef = useRef<OrbitData | null>(null);
+  const [demo, setDemo] = useState(false);
+  return <OrbitWorkspace key={demo ? "demo" : "account"} demo={demo} onDemo={() => setDemo(true)} onExitDemo={() => setDemo(false)} />;
+}
+
+function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: () => void; onExitDemo: () => void }) {
+  const [data, setData] = useState<OrbitData | null>(() => demo ? createDemoData() : null);
+  const dataRef = useRef<OrbitData | null>(data);
   const [signedIn, setSignedIn] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [view, setView] = useState<View>("home");
@@ -50,6 +56,8 @@ export function OrbitApp() {
   useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; try { localStorage.setItem("orbit.theme", dark ? "dark" : "light"); } catch { /* optional preference */ } }, [dark]);
 
   useEffect(() => {
+    // Demo mode never starts account requests, subscriptions, or live-data polling.
+    if (demo) return;
     let disposed = false;
     const client = getSupabaseBrowserClient();
     async function load(signedIn: boolean) {
@@ -71,7 +79,7 @@ export function OrbitApp() {
     });
     const poll = window.setInterval(() => { if (!disposed && dataRef.current && !pending.current && document.visibilityState === "visible") { const current = generation.current; const version = mutationVersion.current; void getOnlineData().then(next => { if (!disposed && current === generation.current && version === mutationVersion.current && !pending.current) replaceData(next); }).catch(() => {}); } }, 30000);
     return () => { disposed = true; subscription.subscription.unsubscribe(); clearInterval(poll); };
-  }, [replaceData]);
+  }, [demo, replaceData]);
 
   const onAction = useCallback((action: OrbitAction): Promise<void> => {
     const currentGeneration = generation.current;
@@ -79,23 +87,23 @@ export function OrbitApp() {
       if (!dataRef.current || currentGeneration !== generation.current) throw new Error("Your session changed. Please try again.");
       pending.current = true; mutationVersion.current += 1; setSaving(true);
       try {
-        const next = await getOnlineData(action);
+        const next = demo ? applyDemoAction(dataRef.current, action) : await getOnlineData(action);
         if (currentGeneration !== generation.current) return;
         replaceData(next);
       } finally { pending.current = false; setSaving(false); }
     });
     mutationQueue.current = job;
     return job;
-  }, [notify, replaceData]);
+  }, [demo, replaceData]);
 
   function navigate(next: View) { setView(next); setSearch(""); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
   async function signOut() { const client = getSupabaseBrowserClient(); if (client) { const { error } = await client.auth.signOut(); if (error) notify(error.message); } }
 
-  if (sessionReady && (!signedIn || recovery)) return <AuthScreen key={recovery ? "recovery" : "login"} recovery={recovery} notice={toast} onRecoveryDone={() => setRecovery(false)} />;
+  if (!demo && sessionReady && (!signedIn || recovery)) return <AuthScreen key={recovery ? "recovery" : "login"} recovery={recovery} notice={toast} onRecoveryDone={() => setRecovery(false)} onDemo={onDemo} />;
 
   if (!data) return <main className="loading-screen"><span className="logo-mark"><Orbit size={32} /></span><h1>Getting your Orbit together.</h1>{error ? <><p className="form-error" role="alert">{error}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button><button className="text-button" onClick={signOut}>Sign out</button></> : <><p className="muted">A little connection is on its way.</p><span className="loading-dots"><i /><i /><i /></span></>}</main>;
 
-  if (!data.profile.onboardingCompletedAt) return <Onboarding profile={data.profile} onSaved={replaceData} onSignOut={signOut} />;
+  if (!demo && !data.profile.onboardingCompletedAt) return <Onboarding profile={data.profile} onSaved={replaceData} onSignOut={signOut} />;
 
   const firstName = data.profile.name.split(" ")[0];
   const openTasks = data.tasks.filter(task => !task.completed && task.kind === "task");
@@ -116,7 +124,7 @@ export function OrbitApp() {
       <button className="user-card" onClick={() => navigate("profile")}><MemberAvatar profile={data.profile} /><span><strong>{data.profile.name}</strong><small>{data.profile.graduationYear ? `Class of ${data.profile.graduationYear}` : "Your profile"}</small></span><ChevronRight size={17} /></button></div>
     </aside>
     <div className="main-layout"><header className="topbar"><div className="breadcrumb"><button className="icon-button mobile-menu" aria-label="Open navigation" onClick={() => setMenu(true)}><Menu size={21} /></button><span>Your space</span><ChevronRight size={14} /><strong>{view === "home" ? "Home feed" : view === "events" ? "Events & plans" : view === "campus" ? "Campus hub" : view === "profile" ? "My profile" : "Roommates"}</strong></div><div className="topbar-actions">{view !== "profile" && <label className="global-search"><Search size={17} /><input aria-label="Search current view" placeholder="Search your Orbit…" value={search} onChange={event => setSearch(event.target.value)} /></label>}<button className="icon-button theme-button" onClick={() => setDark(!dark)} aria-label={dark ? "Use light appearance" : "Use dark appearance"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button><div className="notification-wrap"><button className={`icon-button${activity ? " selected" : ""}`} aria-label="Your activity" aria-expanded={activity} onClick={() => setActivity(!activity)}><Bell size={20} /><i className="notification-dot" /></button>{activity && <div className="activity-popover"><h3>In your Orbit</h3><p className="muted">{openTasks.length} open tasks · {upcoming.filter(e => e.attendees.includes(data.profile.id)).length} upcoming plans</p>{openTasks.slice(0, 3).map(task => <button key={task.id} onClick={() => navigate("roommates")}><span className="tiny-task-icon"><Check size={14} /></span><span>{task.title}<small>View in your shared space</small></span><ChevronRight size={15} /></button>)}{!openTasks.length && <p className="muted">You’re all caught up. Make a plan with your people.</p>}</div>}</div><span className="topbar-divider" /><button className="top-avatar-button" aria-label="Open your profile" onClick={() => navigate("profile")}><MemberAvatar profile={data.profile} small /></button></div></header>
-    <div className="status-strip"><span><i className="status-dot" />{saving ? "Saving your changes…" : "Connected to your shared space"}<span className="status-detail">Updates refresh every 30 seconds</span></span><button onClick={signOut}>Sign out <LogOut size={13} /></button></div>
+    <div className="status-strip"><span><i className={`status-dot${demo ? " demo" : ""}`} />{demo ? "You’re exploring the demo" : saving ? "Saving your changes…" : "Connected to your shared space"}<span className="status-detail">{demo ? "Fictional people & activity · changes reset when you leave" : "Updates refresh every 30 seconds"}</span></span>{demo ? <button onClick={onExitDemo}>Back to log in <LogOut size={13} /></button> : <button onClick={signOut}>Sign out <LogOut size={13} /></button>}</div>
     {error && <div className="app-error" role="alert">{error}<button className="icon-button" aria-label="Dismiss error" onClick={() => setError("")}><X size={16} /></button></div>}
     <main id="main-content" className={`page-content page-${view}`}>
       {view === "home" && <div className="home-grid"><div className="home-primary"><div className="welcome-heading"><div><p className="eyebrow">A LITTLE CONNECTION GOES A LONG WAY</p><h1>Hey {firstName}, welcome home <span className="wave">✺</span></h1><p className="muted">Here’s what’s happening in your corner of campus.</p></div><span className="today-date">{new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span></div>
@@ -132,7 +140,7 @@ export function OrbitApp() {
       {view === "profile" && <ProfileView data={data} onAction={onAction} />}
     </main></div>
     {toast && <div className="toast" role="status"><Check size={17} />{toast}</div>}
-    {help && <ViewModal title="A little help goes a long way." onClose={() => setHelp(false)}><div className="help-content"><p>Orbit brings your campus life and shared home together.</p><div><Users /><p><strong>Start your shared space</strong>Head to Roommates, create a space, and share its invite code with friends who have an Orbit account.</p></div><div><CalendarDays /><p><strong>Make a plan</strong>Create an event and RSVP to the things you want to show up for. Plans are shared with your workspace.</p></div><div><GraduationCap /><p><strong>Find campus resources</strong>The Campus hub links directly to Caldwell University’s official services. Orbit is an independent student project.</p></div><p className="muted">Your data is stored in your shared workspace. Expense tracking records shared spending; Orbit does not transfer money.</p></div></ViewModal>}
+    {help && <ViewModal title="A little help goes a long way." onClose={() => setHelp(false)}><div className="help-content"><p>Orbit brings your campus life and shared home together.</p><div><Users /><p><strong>Start your shared space</strong>Head to Roommates, create a space, and share its invite code with friends who have an Orbit account.</p></div><div><CalendarDays /><p><strong>Make a plan</strong>Create an event and RSVP to the things you want to show up for. Plans are shared with your workspace.</p></div><div><GraduationCap /><p><strong>Find campus resources</strong>The Campus hub links directly to Caldwell University’s official services. Orbit is an independent student project.</p></div><p className="muted">{demo ? "This is a fictional sample community. Demo changes reset when you leave and never transfer to your real account." : "Your data is stored in your shared workspace. Expense tracking records shared spending; Orbit does not transfer money."}</p></div></ViewModal>}
   </div>;
 }
 

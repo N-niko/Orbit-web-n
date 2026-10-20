@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Login is the landing page. Connect Supabase below to enable accounts. The dashboard is available after login and one-time account setup; fictional demo data is no longer shown to signed-out visitors.
+Open [localhost:3000](http://localhost:3000). Login is the landing page. Choose **Try the demo** from either the login or sign-up screen to explore Alex Morgan’s fictional campus, friends, posts, tasks, and events without an account. Demo changes stay in memory and reset when you leave or refresh; the demo never loads or writes real account data. **Back to log in** exits the preview. Connect Supabase below to enable real accounts and one-time account setup.
 
 To check or run a production build:
 

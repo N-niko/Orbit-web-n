@@ -25,7 +25,7 @@ export function PasswordField({ value, onChange, strong = false }: { value: stri
 }
 
 type Mode = "signin" | "signup" | "forgot" | "reset" | "confirm";
-export function AuthScreen({ recovery = false, notice = "", onRecoveryDone }: { recovery?: boolean; notice?: string; onRecoveryDone: () => void }) {
+export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDemo }: { recovery?: boolean; notice?: string; onRecoveryDone: () => void; onDemo: () => void }) {
   const [mode, setMode] = useState<Mode>(recovery ? "reset" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -89,6 +89,7 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone }: { 
         </fieldset>
       </form>
       {signup ? <p className="account-switch">Already have an account? <button onClick={() => switchMode("signin")}>Log in</button></p> : mode === "signin" ? <p className="account-switch">New around here? <button onClick={() => switchMode("signup")}>Create an account</button></p> : null}
+      {(mode === "signin" || signup) && <div className="account-demo"><span>Want to take a look first?</span><button type="button" disabled={busy} onClick={onDemo}>Try the demo <ArrowRight size={15} /></button><small>Explore Alex’s sample campus. No account needed.</small></div>}
     </>}
   </AccountLayout>;
 }
