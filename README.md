@@ -81,6 +81,11 @@ No GitHub repository, Supabase project, or Vercel deployment is created by this 
 - Event creation, categories, and RSVP tracking.
 - Student profiles and workspace creation or joining by code.
 - Login landing page and one-time profile, housing, and optional photo setup.
+- Global search with people first, then clubs, then events; result category labels and keyboard navigation.
+- Student profiles with shared information and posts, event details with RSVP, and fictional club previews in demo mode.
+- Demo profile visibility controls for major, year, bio, courses, clubs, and posts. Hidden fields are omitted from visitor profiles and search; hidden club memberships are also omitted from club rosters. These switches reset with the demo and do not change real-account privacy settings.
+
+Try **Try the demo**, search **design**, and open the student, club, and event results. **My profile → Choose what you share → Preview my profile** demonstrates visibility controls. The course names and clubs are illustrative data. Signed-in search uses only people and events already available in the current workspace; campus-wide search, persistent privacy controls, and real club management are not implemented yet.
 
 Expense balances are tracking estimates, and no money is transferred. Campus posts and events are member-created; Orbit has no university systems integration. The app does not send workspace invitations, direct messages, calendar invitations, or push notifications. Updates load on actions and refresh; shared data also refreshes every 30 seconds while the tab is visible; there is no realtime subscription. This version uses one active workspace at a time and does not include a workspace switcher or invite-code rotation.
 
@@ -92,6 +97,7 @@ Expense balances are tracking estimates, and no money is transferred. Campus pos
 
 - **Accounts are unavailable:** confirm the Supabase environment values, restart locally or redeploy on Vercel, and sign in.
 - **A database function is missing:** run the migration in the same Supabase project referenced by your environment variables.
+- **Local login works, but Vercel says the database needs setup:** check that Vercel's `NEXT_PUBLIC_SUPABASE_URL` and public key refer to the Supabase project where you ran the migrations. A different project can accept sign-ins but still lack Orbit's tables and functions. Either configure Vercel to use the existing Orbit database and redeploy, or apply both migrations in order to the intended production database. Supabase accounts and data do not transfer between projects automatically. Do not rerun the initial migration against an already-configured database.
 - **Email returns to the wrong domain:** check the Supabase Site URL and allowed callback URL, then request a new confirmation email. Confirm that the deployed environment variables match the deployment.
 - **An invite code fails:** copy all 12 letters/numbers from a real workspace. Demo codes cannot connect real accounts.
 
