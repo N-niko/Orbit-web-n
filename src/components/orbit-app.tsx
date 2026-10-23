@@ -9,6 +9,8 @@ import { RoommatesView } from "./roommates";
 import { EventsView } from "./events";
 import { CampusView } from "./campus";
 import { ProfileView } from "./profile";
+import { ClubsView } from "./clubs";
+import { createDemoClubs } from "@/lib/clubs";
 import { MemberAvatar, ViewModal } from "./secondary-shared";
 import { AuthScreen } from "./auth-screen";
 import { Onboarding } from "./onboarding";
@@ -17,8 +19,8 @@ import { DiscoveryPage, ProfileVisibilitySettings } from "./discovery-pages";
 import { buildDirectory, defaultVisibility, withDirectoryPeople, type ProfileVisibility, type SearchTarget } from "@/lib/discovery";
 import type { DirectoryProfile } from "@/lib/people-search";
 
-type View = "home" | "roommates" | "events" | "campus" | "profile";
-const navigation = [{ id: "home", label: "Home feed", icon: Home }, { id: "roommates", label: "Roommates", icon: Users }, { id: "events", label: "Events & plans", icon: CalendarDays }, { id: "campus", label: "Campus hub", icon: Compass }] as const;
+type View = "home" | "roommates" | "events" | "campus" | "profile" | "clubs";
+const navigation = [{ id: "home", label: "Home feed", icon: Home }, { id: "roommates", label: "Roommates", icon: Users }, { id: "events", label: "Events & plans", icon: CalendarDays }, { id: "campus", label: "Campus hub", icon: Compass }, { id: "clubs", label: "Clubs", icon: MessageCircle }] as const;
 
 async function getOnlineData(action?: OrbitAction): Promise<OrbitData> {
   const response = await fetch("/api/orbit", action ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action), cache: "no-store" } : { cache: "no-store" });
@@ -38,6 +40,8 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
   const [signedIn, setSignedIn] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [view, setView] = useState<View>("home");
+  const [activeClub, setActiveClub] = useState<string | null>(null);
+  const [demoClubData, setDemoClubData] = useState(createDemoClubs);
   const [detail, setDetail] = useState<SearchTarget | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<DirectoryProfile | null>(null);
   const [visibility, setVisibility] = useState<ProfileVisibility>(() => ({ ...defaultVisibility }));
@@ -102,8 +106,8 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
     return job;
   }, [demo, replaceData]);
 
-  function navigate(next: View) { setView(next); setDetail(null); setSelectedPerson(null); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function openDetail(target: SearchTarget, person?: DirectoryProfile) { if (person) setSelectedPerson(person); setDetail(target); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function navigate(next: View) { setView(next); setActiveClub(null); setDetail(null); setSelectedPerson(null); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function openDetail(target: SearchTarget, person?: DirectoryProfile) { if (target.type === "club") { setActiveClub(target.id); setView("clubs"); setDetail(null); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); return; } if (person) setSelectedPerson(person); setDetail(target); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
   async function signOut() { const client = getSupabaseBrowserClient(); if (client) { const { error } = await client.auth.signOut(); if (error) notify(error.message); } }
 
   if (!demo && sessionReady && (!signedIn || recovery)) return <AuthScreen key={recovery ? "recovery" : "login"} recovery={recovery} notice={toast} onRecoveryDone={() => setRecovery(false)} onDemo={onDemo} />;
@@ -114,7 +118,8 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
 
   const firstName = data.profile.name.split(" ")[0];
   const profileVisibility = demo ? visibility : { ...defaultVisibility, ...data.profile.visibility };
-  const directory = withDirectoryPeople(buildDirectory(data, demo, profileVisibility), selectedPerson ? [selectedPerson] : []);
+  const localDirectory = buildDirectory(data, demo, profileVisibility);
+  const directory = withDirectoryPeople({ ...localDirectory, clubs: demo ? demoClubData.clubs.map(club => ({ ...club, eventIds: [] })) : [] }, selectedPerson ? [selectedPerson] : []);
   const openTasks = data.tasks.filter(task => !task.completed && task.kind === "task");
   const upcoming = data.events.filter(event => new Date(event.startsAt).getTime() >= Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
@@ -132,7 +137,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
       <div className="sidebar-bottom"><div className="connection-card"><span className="little-orbit"><Orbit size={42} strokeWidth={1} /><i /></span><h3>Good things happen<br />in good company.</h3><p>Bring your people into Orbit.</p><button className="text-button" onClick={() => navigate("roommates")}>Invite your roommates <ArrowUpRight size={15} /></button></div>
       <button className="user-card" onClick={() => navigate("profile")}><MemberAvatar profile={data.profile} /><span><strong>{data.profile.name}</strong><small>{data.profile.graduationYear ? `Class of ${data.profile.graduationYear}` : "Your profile"}</small></span><ChevronRight size={17} /></button></div>
     </aside>
-    <div className="main-layout"><header className="topbar"><div className="breadcrumb"><button className="icon-button mobile-menu" aria-label="Open navigation" onClick={() => setMenu(true)}><Menu size={21} /></button><span>Your space</span><ChevronRight size={14} /><strong>{detail ? detail.type === "person" ? "Student profile" : detail.type === "club" ? "Club preview" : "Event details" : view === "home" ? "Home feed" : view === "events" ? "Events & plans" : view === "campus" ? "Campus hub" : view === "profile" ? "My profile" : "Roommates"}</strong></div><div className="topbar-actions"><OrbitSearch directory={directory} onSelect={openDetail} demo={demo} /><button className="icon-button theme-button" onClick={() => setDark(!dark)} aria-label={dark ? "Use light appearance" : "Use dark appearance"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button><div className="notification-wrap"><button className={`icon-button${activity ? " selected" : ""}`} aria-label="Your activity" aria-expanded={activity} onClick={() => setActivity(!activity)}><Bell size={20} /><i className="notification-dot" /></button>{activity && <div className="activity-popover"><h3>In your Orbit</h3><p className="muted">{openTasks.length} open tasks · {upcoming.filter(e => e.attendees.includes(data.profile.id)).length} upcoming plans</p>{openTasks.slice(0, 3).map(task => <button key={task.id} onClick={() => navigate("roommates")}><span className="tiny-task-icon"><Check size={14} /></span><span>{task.title}<small>View in your shared space</small></span><ChevronRight size={15} /></button>)}{!openTasks.length && <p className="muted">You’re all caught up. Make a plan with your people.</p>}</div>}</div><span className="topbar-divider" /><button className="top-avatar-button" aria-label="Open your profile" onClick={() => navigate("profile")}><MemberAvatar profile={data.profile} small /></button></div></header>
+    <div className="main-layout"><header className="topbar"><div className="breadcrumb"><button className="icon-button mobile-menu" aria-label="Open navigation" onClick={() => setMenu(true)}><Menu size={21} /></button><span>Your space</span><ChevronRight size={14} /><strong>{detail ? detail.type === "person" ? "Student profile" : detail.type === "club" ? "Club preview" : "Event details" : view === "home" ? "Home feed" : view === "events" ? "Events & plans" : view === "campus" ? "Campus hub" : view === "profile" ? "My profile" : view === "clubs" ? "Clubs" : "Roommates"}</strong></div><div className="topbar-actions"><OrbitSearch directory={directory} onSelect={openDetail} demo={demo} /><button className="icon-button theme-button" onClick={() => setDark(!dark)} aria-label={dark ? "Use light appearance" : "Use dark appearance"}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button><div className="notification-wrap"><button className={`icon-button${activity ? " selected" : ""}`} aria-label="Your activity" aria-expanded={activity} onClick={() => setActivity(!activity)}><Bell size={20} /><i className="notification-dot" /></button>{activity && <div className="activity-popover"><h3>In your Orbit</h3><p className="muted">{openTasks.length} open tasks · {upcoming.filter(e => e.attendees.includes(data.profile.id)).length} upcoming plans</p>{openTasks.slice(0, 3).map(task => <button key={task.id} onClick={() => navigate("roommates")}><span className="tiny-task-icon"><Check size={14} /></span><span>{task.title}<small>View in your shared space</small></span><ChevronRight size={15} /></button>)}{!openTasks.length && <p className="muted">You’re all caught up. Make a plan with your people.</p>}</div>}</div><span className="topbar-divider" /><button className="top-avatar-button" aria-label="Open your profile" onClick={() => navigate("profile")}><MemberAvatar profile={data.profile} small /></button></div></header>
     <div className="status-strip"><span><i className={`status-dot${demo ? " demo" : ""}`} />{demo ? "You’re exploring the demo" : saving ? "Saving your changes…" : "Connected to your shared space"}{demo && <span className="status-detail">Fictional people & activity · changes reset when you leave</span>}</span>{demo ? <button onClick={onExitDemo}>Back to log in <LogOut size={13} /></button> : <button onClick={signOut}>Sign out <LogOut size={13} /></button>}</div>
     {error && <div className="app-error" role="alert">{error}<button className="icon-button" aria-label="Dismiss error" onClick={() => setError("")}><X size={16} /></button></div>}
     <main id="main-content" className={`page-content page-${view}`}>
@@ -148,6 +153,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
       {view === "roommates" && <RoommatesView data={data} onAction={onAction} />}
       {view === "events" && <EventsView data={data} onAction={onAction} onOpenEvent={id => openDetail({ type: "event", id })} />}
       {view === "campus" && <CampusView />}
+      {view === "clubs" && <ClubsView profile={data.profile} demo={demo} demoData={demoClubData} onDemoChange={setDemoClubData} selectedId={activeClub} onSelect={setActiveClub} />}
       {view === "profile" && <ProfileView data={data} onAction={onAction} privacyPanel={<ProfileVisibilitySettings demo={demo} value={profileVisibility} onChange={async (field, visible) => { if (demo) setVisibility(current => ({ ...current, [field]: visible })); else if (field === "major" || field === "year" || field === "bio") await onAction({ type: "update_visibility", field, visible }); }} onPreview={() => openDetail({ type: "person", id: data.profile.id })} />} />}
       </>}
     </main></div>
