@@ -1,8 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { createDemoData, applyDemoAction } from "./demo";
-import { buildDirectory, defaultVisibility, searchDirectory, visibleClubMembers } from "./discovery";
+import { buildDirectory, defaultVisibility, searchDirectory, visibleClubMembers, withDirectoryPeople } from "./discovery";
 
 describe("Orbit discovery", () => {
+  it("finds a campus profile outside the workspace without adding workspace or account-only data", () => {
+    const local = buildDirectory(createDemoData(), false);
+    const student = { id: "30000000-0000-4000-8000-000000000001", name: "Other Student", university: "Caldwell University", major: "Physics", year: "", graduationYear: 2030, color: "#eeeeee" };
+    const directory = withDirectoryPeople(local, [student, student]);
+    expect(searchDirectory(directory, "other student")).toEqual([{ type: "person", id: student.id, title: student.name, subtitle: "Physics" }]);
+    expect(directory.people.filter(person => person.profile.id === student.id)).toHaveLength(1);
+    expect(directory.people.find(person => person.profile.id === student.id)).toMatchObject({ courses: null, clubIds: null, posts: null, profile: { bio: "" } });
+    expect(local.people.some(person => person.profile.id === student.id)).toBe(false);
+  });
+  it("preserves authorized workspace profile details when a campus match has the same ID", () => {
+    const directory = buildDirectory(createDemoData(), false);
+    const original = directory.people[0];
+    const merged = withDirectoryPeople(directory, [{ ...original.profile, name: "Stale directory name", graduationYear: null }]);
+    expect(merged.people.find(person => person.profile.id === original.profile.id)).toBe(original);
+  });
   it("puts people before clubs before events, including when a club has an exact title match", () => {
     const original = createDemoData();
     const data = applyDemoAction(original, { type: "update_profile", name: "Design Student", major: "Art", year: "Junior", bio: "Hello" });

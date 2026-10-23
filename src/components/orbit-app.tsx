@@ -14,7 +14,8 @@ import { AuthScreen } from "./auth-screen";
 import { Onboarding } from "./onboarding";
 import { OrbitSearch } from "./orbit-search";
 import { DiscoveryPage, ProfileVisibilitySettings } from "./discovery-pages";
-import { buildDirectory, defaultVisibility, type ProfileVisibility, type SearchTarget } from "@/lib/discovery";
+import { buildDirectory, defaultVisibility, withDirectoryPeople, type ProfileVisibility, type SearchTarget } from "@/lib/discovery";
+import type { DirectoryProfile } from "@/lib/people-search";
 
 type View = "home" | "roommates" | "events" | "campus" | "profile";
 const navigation = [{ id: "home", label: "Home feed", icon: Home }, { id: "roommates", label: "Roommates", icon: Users }, { id: "events", label: "Events & plans", icon: CalendarDays }, { id: "campus", label: "Campus hub", icon: Compass }] as const;
@@ -38,6 +39,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
   const [sessionReady, setSessionReady] = useState(false);
   const [view, setView] = useState<View>("home");
   const [detail, setDetail] = useState<SearchTarget | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<DirectoryProfile | null>(null);
   const [visibility, setVisibility] = useState<ProfileVisibility>(() => ({ ...defaultVisibility }));
   const [recovery, setRecovery] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -68,7 +70,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
       const current = ++generation.current;
       if (disposed) return;
       setSignedIn(signedIn); setSessionReady(true); setError("");
-      if (!signedIn) { replaceData(null); return; }
+      if (!signedIn) { replaceData(null); setSelectedPerson(null); return; }
       replaceData(null);
       try { const next = await getOnlineData(); if (!disposed && current === generation.current) replaceData(next); }
       catch (cause) { if (!disposed && current === generation.current) setError(cause instanceof Error ? cause.message : "Unable to load your Orbit."); }
@@ -100,8 +102,8 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
     return job;
   }, [demo, replaceData]);
 
-  function navigate(next: View) { setView(next); setDetail(null); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function openDetail(target: SearchTarget) { setDetail(target); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function navigate(next: View) { setView(next); setDetail(null); setSelectedPerson(null); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function openDetail(target: SearchTarget, person?: DirectoryProfile) { if (person) setSelectedPerson(person); setDetail(target); setMenu(false); setActivity(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
   async function signOut() { const client = getSupabaseBrowserClient(); if (client) { const { error } = await client.auth.signOut(); if (error) notify(error.message); } }
 
   if (!demo && sessionReady && (!signedIn || recovery)) return <AuthScreen key={recovery ? "recovery" : "login"} recovery={recovery} notice={toast} onRecoveryDone={() => setRecovery(false)} onDemo={onDemo} />;
@@ -111,7 +113,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo }: { demo: boolean; onDemo: (
   if (!demo && !data.profile.onboardingCompletedAt) return <Onboarding profile={data.profile} onSaved={replaceData} onSignOut={signOut} />;
 
   const firstName = data.profile.name.split(" ")[0];
-  const directory = buildDirectory(data, demo, visibility);
+  const directory = withDirectoryPeople(buildDirectory(data, demo, visibility), selectedPerson ? [selectedPerson] : []);
   const openTasks = data.tasks.filter(task => !task.completed && task.kind === "task");
   const upcoming = data.events.filter(event => new Date(event.startsAt).getTime() >= Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 

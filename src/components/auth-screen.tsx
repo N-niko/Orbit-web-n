@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, GraduationCap, Mail, Orbit } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { accountPassword, passwordChecks, signupSchema } from "@/lib/account";
+import { authErrorMessage } from "@/lib/auth-errors";
 import "./account.css";
 
 export function AccountLayout({ children, step }: { children: ReactNode; step?: number }) {
@@ -32,8 +33,29 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDe
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [resendSeconds, setResendSeconds] = useState(0);
   const client = getSupabaseBrowserClient();
+  useEffect(() => {
+    if (resendSeconds <= 0) return;
+    const timer = window.setTimeout(() => setResendSeconds(seconds => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
   function switchMode(next: Mode) { if (busy) return; setMode(next); setError(""); setMessage(""); setPassword(""); }
+
+  async function resendConfirmation() {
+    if (!client || busy || resendSeconds > 0) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const { error } = await client.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+      if (error) {
+        if (error.status === 429) setResendSeconds(60);
+        throw new Error(authErrorMessage(error));
+      }
+      setResendSeconds(60);
+      setMessage("Confirmation requested. If this email has an unconfirmed account, a new link will arrive shortly. Open the latest link in this browser.");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "We couldn’t request another confirmation email. Please try again."); }
+    finally { setBusy(false); }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!client) return;
@@ -42,7 +64,12 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDe
     try {
       if (mode === "signin") {
         const { error } = await client.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) throw error;
+        if (error?.code === "email_not_confirmed") {
+          setPassword(""); setMode("confirm");
+          setMessage("Your email still needs confirmation. You can request a new link below.");
+          return;
+        }
+        if (error) throw new Error(authErrorMessage(error));
       } else if (mode === "signup") {
         const input = signupSchema.safeParse({ name: form.get("name"), email: email.trim(), password, major: form.get("major"), graduationYear: Number(form.get("graduationYear")) });
         if (!input.success) throw new Error(input.error.issues[0]?.message ?? "Check your details.");
@@ -50,10 +77,10 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDe
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "We couldn’t create your account. Please try again.");
         setPassword("");
-        if (result.confirmationRequired) setMode("confirm"); else window.location.assign("/");
+        if (result.confirmationRequired) { setResendSeconds(60); setMode("confirm"); } else window.location.assign("/");
       } else if (mode === "forgot") {
         const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/auth/recovery` });
-        if (error) throw error;
+        if (error) throw new Error(authErrorMessage(error));
         setMessage("If an account exists for this email, you’ll receive a password reset link. Open it in this browser.");
       } else if (mode === "reset") {
         const parsed = accountPassword.safeParse(password);
@@ -69,7 +96,7 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDe
   const signup = mode === "signup";
   return <AccountLayout step={signup || mode === "confirm" ? 1 : undefined}>
     {(mode === "signin" || signup) && <div className="account-tabs" aria-label="Account options"><button aria-pressed={mode === "signin"} onClick={() => switchMode("signin")}>Log in</button><button aria-pressed={signup} onClick={() => switchMode("signup")}>Create an account</button></div>}
-    {mode === "confirm" ? <div className="account-confirm"><span className="account-icon"><Mail size={28} /></span><p className="account-eyebrow">ONE QUICK CHECK</p><h2>Check your inbox.</h2><p>We sent a confirmation link to <strong>{email}</strong>. Open it in this browser to continue with campus life and your photo.</p><p className="account-hint">Check your spam folder too. Once confirmed, you can also log in below to continue setup.</p><button className="account-submit" onClick={() => switchMode("signin")}>Back to log in <ArrowRight size={17} /></button><button className="account-text" onClick={() => switchMode("signup")}>Use a different email</button></div> : <>
+    {mode === "confirm" ? <div className="account-confirm"><span className="account-icon"><Mail size={28} /></span><p className="account-eyebrow">ONE QUICK CHECK</p><h2>Confirm your email.</h2><p>Look for a confirmation link at <strong>{email.trim()}</strong>. Open the latest link in this browser to continue with campus life and your photo.</p><p className="account-hint">Check your spam folder too. If you already confirmed this address, log in below to continue setup.</p>{error && <p className="form-error" role="alert">{error}</p>}{message && <p className="form-success" role="status">{message}</p>}<button type="button" className="account-submit" disabled={busy || !client || resendSeconds > 0} onClick={resendConfirmation}>{busy ? "Requesting…" : resendSeconds > 0 ? `Resend available in ${resendSeconds}s` : "Resend confirmation email"}<Mail size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signin")}>Back to log in <ArrowRight size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signup")}>Use a different email</button></div> : <>
       {(mode === "forgot") && <button className="account-back" onClick={() => switchMode("signin")}><ArrowLeft size={15} />Back to log in</button>}
       <p className="account-eyebrow">{signup ? "LET’S START WITH YOU" : mode === "forgot" ? "A LITTLE HELP GETTING BACK" : mode === "reset" ? "A FRESH START" : "YOUR EVERYDAY ORBIT"}</p>
       <h2>{signup ? "Find your people." : mode === "forgot" ? "Forgot your password?" : mode === "reset" ? "Choose a new password." : "Welcome back."}</h2>

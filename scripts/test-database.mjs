@@ -33,7 +33,8 @@ try {
   }
   await db.exec(await readFile(new URL("../supabase/tests/orbit_security.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_onboarding.sql", import.meta.url), "utf8"));
-  console.log("Database checks passed: all migrations, workspace security, resumable onboarding, housing validation, durable completion, and private avatar ownership/workspace access. Storage uses a local schema shim; hosted uploads still need a live account test.");
+  await db.exec(await readFile(new URL("../supabase/tests/orbit_people_search.sql", import.meta.url), "utf8"));
+  console.log("Database checks passed: all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, and cross-workspace people search with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
 } catch (error) {
   console.error("Database check failed:", error.message, error.detail || "", error.where || "");
   process.exitCode = 1;

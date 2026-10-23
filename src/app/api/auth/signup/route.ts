@@ -2,6 +2,7 @@ import { signupSchema } from "@/lib/account";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { hasAllowedOrigin } from "@/lib/server/validation";
 import { privateJson } from "@/lib/server/responses";
+import { authErrorMessage } from "@/lib/auth-errors";
 
 export async function POST(request: Request) {
   if (!hasAllowedOrigin(request)) return privateJson({ error: "Unrecognized origin." }, 403);
@@ -19,6 +20,6 @@ export async function POST(request: Request) {
     emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
     data: { name, major, graduation_year: graduationYear },
   } });
-  if (error) return privateJson({ error: error.message }, 400);
+  if (error) return privateJson({ error: authErrorMessage(error) }, error.status === 429 ? 429 : 400);
   return privateJson({ confirmationRequired: !data.session });
 }

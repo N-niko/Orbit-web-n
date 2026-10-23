@@ -1,4 +1,5 @@
 import type { OrbitData, Post, Profile } from "./types";
+import { directoryProfile, type DirectoryProfile } from "./people-search";
 
 export const visibilityLabels = {
   major: "Major", year: "Year & graduation year", bio: "About me",
@@ -57,6 +58,18 @@ export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = d
   return { people, clubs, events: data.events };
 }
 export type Directory = ReturnType<typeof buildDirectory>;
+
+/** Add campus matches without replacing richer, authorized workspace profiles. */
+export function withDirectoryPeople(directory: Directory, profiles: DirectoryProfile[]): Directory {
+  const known = new Set(directory.people.map(person => person.profile.id));
+  const people = [...directory.people];
+  for (const profile of profiles) {
+    if (known.has(profile.id)) continue;
+    known.add(profile.id);
+    people.push({ profile: directoryProfile(profile), courses: null, clubIds: null, posts: null });
+  }
+  return { ...directory, people };
+}
 
 const categoryPriority = { person: 0, club: 1, event: 2 };
 const normalize = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim().replace(/\s+/g, " ");
