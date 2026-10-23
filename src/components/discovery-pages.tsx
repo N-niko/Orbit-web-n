@@ -8,11 +8,22 @@ import { MemberAvatar } from "./secondary-shared";
 import { EventArtwork } from "./events";
 import "./discovery.css";
 
-export function ProfileVisibilitySettings({ value, onChange, onPreview }: { value: ProfileVisibility; onChange: (field: VisibilityField, visible: boolean) => void; onPreview: () => void }) {
-  return <section className="panel visibility-settings"><div className="discovery-section-heading"><div><span className="discovery-eyebrow"><ShieldCheck size={15} />DEMO PRIVACY CONTROLS</span><h2>Choose what you share.</h2></div><button className="btn btn-secondary" onClick={onPreview}><Eye size={15} />Preview my profile</button></div>
-    <p className="muted">Toggle the details other students see on your profile. Your name stays visible.</p>
-    <div className="visibility-options">{(Object.keys(defaultVisibility) as VisibilityField[]).map(field => <label key={field}><span><strong>{visibilityLabels[field]}</strong><small>{value[field] ? "Visible on your profile" : "Hidden from other students"}</small></span><input type="checkbox" role="switch" checked={value[field]} aria-label={`Show ${visibilityLabels[field].toLowerCase()} on my public profile`} onChange={event => onChange(field, event.target.checked)} /><i aria-hidden="true" /></label>)}</div>
-    <p className="visibility-demo-note">These controls demonstrate profile privacy using fictional data. Changes reset when you leave the demo; real account privacy settings will come later.</p>
+export function ProfileVisibilitySettings({ value, onChange, onPreview, demo }: { value: ProfileVisibility; onChange: (field: VisibilityField, visible: boolean) => Promise<void>; onPreview: () => void; demo: boolean }) {
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  async function change(field: VisibilityField, visible: boolean) {
+    setPending(true); setMessage(""); setError("");
+    try { await onChange(field, visible); setMessage(demo ? "Preview updated." : "Visibility saved."); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save your visibility. Try again."); }
+    finally { setPending(false); }
+  }
+  const fields: VisibilityField[] = demo ? Object.keys(defaultVisibility) as VisibilityField[] : ["major", "year", "bio"];
+  return <section className="panel visibility-settings"><div className="discovery-section-heading"><div><span className="discovery-eyebrow"><ShieldCheck size={15} />PROFILE VISIBILITY</span><h2>Choose what you share.</h2></div><button className="btn btn-secondary" onClick={onPreview}><Eye size={15} />Preview my profile</button></div>
+    <p className="muted">Choose which details other students see. Your name and campus stay visible.</p>
+    <div className="visibility-options">{fields.map(field => <label key={field}><span><strong>{visibilityLabels[field]}</strong><small>{value[field] ? "Visible on your profile" : "Hidden from other students"}</small></span><input type="checkbox" role="switch" checked={value[field]} disabled={pending} aria-label={`Show ${visibilityLabels[field].toLowerCase()} on my profile`} onChange={event => { void change(field, event.target.checked); }} /><i aria-hidden="true" /></label>)}</div>
+    <p role="status" className="muted">{pending ? "Saving visibility…" : message}</p>{error && <p className="form-error" role="alert">{error}</p>}
+    <p className="visibility-demo-note">{demo ? "Demo changes reset when you leave." : "Changes save automatically. These switches also hide details from search. Posts keep their existing shared-space audience."}</p>
   </section>;
 }
 
@@ -41,7 +52,7 @@ export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, o
 function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy }: { person: DirectoryPerson; clubs: DemoClub[]; onOpen: (target: SearchTarget) => void; own: boolean; demo: boolean; onPrivacy: () => void }) {
   const { profile, courses, clubIds, posts } = person;
   return <>
-    <section className="panel public-profile-hero"><div className="public-profile-cover"><span>IN YOUR ORBIT</span><i>✳</i></div><div className="public-profile-intro"><MemberAvatar profile={profile} /><div><span className="discovery-pill">{own ? "Your profile · visitor preview" : "Student profile"}</span><h1 id="discovery-heading" tabIndex={-1}>{profile.name}</h1><p><GraduationCap size={16} />{profile.university}</p></div>{own && demo && <button className="btn btn-secondary" onClick={onPrivacy}><ShieldCheck size={16} />Edit visibility</button>}</div></section>
+    <section className="panel public-profile-hero"><div className="public-profile-cover"><span>IN YOUR ORBIT</span><i>✳</i></div><div className="public-profile-intro"><MemberAvatar profile={profile} /><div><span className="discovery-pill">{own ? "Your profile · visitor preview" : "Student profile"}</span><h1 id="discovery-heading" tabIndex={-1}>{profile.name}</h1><p><GraduationCap size={16} />{profile.university}</p></div>{own && <button className="btn btn-secondary" onClick={onPrivacy}><ShieldCheck size={16} />Edit visibility</button>}</div></section>
     <div className="discovery-columns"><div className="discovery-main">
       <section className="panel discovery-section"><div className="discovery-section-heading"><h2>A little about {own ? "you" : profile.name.split(" ")[0]}</h2><span className="discovery-muted-label">{demo ? "Demo profile" : posts === null ? "Orbit directory" : "Shared in your workspace"}</span></div>
         {profile.bio ? <p className="public-bio">{profile.bio}</p> : <p className="hidden-detail">No bio shared.</p>}

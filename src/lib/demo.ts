@@ -80,6 +80,8 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
   const createdAt = now.toISOString();
 
   switch (action.type) {
+    case "update_visibility":
+      return { ...data, profile: { ...data.profile, visibility: { major: true, year: true, bio: true, ...data.profile.visibility, [action.field]: action.visible } } };
     case "create_post":
       return { ...data, posts: [{ id: nextId("post", data.posts.map((post) => post.id)), author: data.profile, body: required(action.body, "Post", 3000), category: action.category, createdAt, likes: [], comments: [] }, ...data.posts] };
     case "toggle_like":

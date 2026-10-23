@@ -3,6 +3,12 @@ import { createDemoData, applyDemoAction } from "./demo";
 import { buildDirectory, defaultVisibility, searchDirectory, visibleClubMembers, withDirectoryPeople } from "./discovery";
 
 describe("Orbit discovery", () => {
+  it("applies saved visibility to a real account's visitor preview without erasing owner fields", () => {
+    const data = createDemoData();
+    const own = buildDirectory(data, false, { ...defaultVisibility, major: false, year: false, bio: false }).people.find(p => p.profile.id === data.profile.id)!;
+    expect(own.profile).toMatchObject({ major: "", year: "", bio: "", graduationYear: null });
+    expect(data.profile.major).toBe("Computer Science");
+  });
   it("finds a campus profile outside the workspace without adding workspace or account-only data", () => {
     const local = buildDirectory(createDemoData(), false);
     const student = { id: "30000000-0000-4000-8000-000000000001", name: "Other Student", university: "Caldwell University", major: "Physics", year: "", graduationYear: 2030, color: "#eeeeee" };

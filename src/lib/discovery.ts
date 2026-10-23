@@ -40,7 +40,7 @@ export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = d
   const clubs = demo ? demoClubs : [];
   const people: DirectoryPerson[] = [...profiles.values()].map(profile => {
     const details = demo ? demoDetails[profile.id] : undefined;
-    const visibility = demo ? profile.id === data.profile.id ? ownVisibility : { ...defaultVisibility, ...details?.visibility } : defaultVisibility;
+    const visibility = profile.id === data.profile.id ? ownVisibility : demo ? { ...defaultVisibility, ...details?.visibility } : defaultVisibility;
     // Never put email, residence hall, or other account-only fields into the visitor view.
     const visibleProfile: Profile = {
       id: profile.id, name: profile.name, university: profile.university, color: profile.color,

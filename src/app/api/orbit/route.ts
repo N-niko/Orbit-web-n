@@ -41,7 +41,9 @@ export async function POST(request: Request) {
   }
   const parsed = orbitActionSchema.safeParse(value);
   if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message ?? "Check your form details." }, 400);
-  const { data, error } = await auth.client.rpc("orbit_mutate", { p_action: parsed.data });
+  const { data, error } = parsed.data.type === "update_visibility"
+    ? await auth.client.rpc("orbit_set_profile_visibility", { p_field: parsed.data.field, p_visible: parsed.data.visible })
+    : await auth.client.rpc("orbit_mutate", { p_action: parsed.data });
   if (error) return databaseError(error);
   return privateJson(await withAvatars(auth.client, data));
 }

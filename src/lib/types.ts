@@ -16,6 +16,7 @@ export interface Profile {
   avatarPath?: string | null;
   avatarUrl?: string;
   onboardingCompletedAt?: string | null;
+  visibility?: { major: boolean; year: boolean; bio: boolean };
 }
 
 export interface Comment {
@@ -92,5 +93,6 @@ export type OrbitAction =
   | { type: "create_event"; title: string; description: string; location: string; startsAt: string; category: EventCategory; cover: string }
   | { type: "toggle_rsvp"; id: string }
   | { type: "update_profile"; name: string; major: string; year: string; bio: string }
+  | { type: "update_visibility"; field: "major" | "year" | "bio"; visible: boolean }
   | { type: "join_workspace"; code: string }
   | { type: "create_workspace"; name: string };
