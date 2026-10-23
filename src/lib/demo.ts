@@ -26,10 +26,10 @@ export function createDemoData(now = new Date()): OrbitData {
     profile: alex,
     workspace: { id: "workspace-1", name: "The Maple House", inviteCode: "MAPLEHOUSE026", members },
     posts: [
-      { id: "post-1", author: maya, body: "Anyone up for a library study session? 📚\nHeading to the second floor around 3. Bring your to-do list — I’ll bring the snacks.", category: "general", createdAt: ago(24), likes: ["jordan", "sam"], comments: [{ id: "comment-1", author: jordan, body: "Count me in! Saving a seat by the windows?", createdAt: ago(16) }] },
-      { id: "post-2", author: jordan, body: "Sunday reset, Maple House edition 🌿\nFresh groceries, a clean kitchen, and absolutely no unread group chat messages. We can dream.", category: "general", createdAt: ago(95), likes: ["alex", "maya", "sam"], comments: [{ id: "comment-2", author: sam, body: "I can handle the kitchen after class 🙌", createdAt: ago(72) }] },
-      { id: "post-3", author: sam, body: "Does anyone know a quiet spot on campus for a video interview? Ideally somewhere I can book for an hour.", category: "question", createdAt: ago(180), likes: ["maya"], comments: [{ id: "comment-3", author: alex, body: "The library has individual study rooms — check the desk for availability!", createdAt: ago(145) }] },
-      { id: "post-4", author: alex, body: "Passing along my desk lamp before I upgrade my setup. Great condition, warm light. $12 — message me when you see me around campus.", category: "marketplace", createdAt: ago(280), likes: ["jordan"], comments: [] },
+      { sharedOnProfile: true, id: "post-1", author: maya, body: "Anyone up for a library study session? 📚\nHeading to the second floor around 3. Bring your to-do list — I’ll bring the snacks.", category: "general", createdAt: ago(24), likes: ["jordan", "sam"], comments: [{ id: "comment-1", author: jordan, body: "Count me in! Saving a seat by the windows?", createdAt: ago(16) }] },
+      { sharedOnProfile: true, id: "post-2", author: jordan, body: "Sunday reset, Maple House edition 🌿\nFresh groceries, a clean kitchen, and absolutely no unread group chat messages. We can dream.", category: "general", createdAt: ago(95), likes: ["alex", "maya", "sam"], comments: [{ id: "comment-2", author: sam, body: "I can handle the kitchen after class 🙌", createdAt: ago(72) }] },
+      { sharedOnProfile: true, id: "post-3", author: sam, body: "Does anyone know a quiet spot on campus for a video interview? Ideally somewhere I can book for an hour.", category: "question", createdAt: ago(180), likes: ["maya"], comments: [{ id: "comment-3", author: alex, body: "The library has individual study rooms — check the desk for availability!", createdAt: ago(145) }] },
+      { sharedOnProfile: true, id: "post-4", author: alex, body: "Passing along my desk lamp before I upgrade my setup. Great condition, warm light. $12 — message me when you see me around campus.", category: "marketplace", createdAt: ago(280), likes: ["jordan"], comments: [] },
     ],
     tasks: [
       { id: "task-1", title: "Take out the recycling", assignee: "alex", dueDate: day(0), completed: false, kind: "task" },
@@ -81,9 +81,12 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
 
   switch (action.type) {
     case "update_visibility":
-      return { ...data, profile: { ...data.profile, visibility: { major: true, year: true, bio: true, ...data.profile.visibility, [action.field]: action.visible } } };
+      return { ...data, profile: { ...data.profile, visibility: { major: true, year: true, bio: true, posts: true, ...data.profile.visibility, [action.field]: action.visible } } };
     case "create_post":
-      return { ...data, posts: [{ id: nextId("post", data.posts.map((post) => post.id)), author: data.profile, body: required(action.body, "Post", 3000), category: action.category, createdAt, likes: [], comments: [] }, ...data.posts] };
+      return { ...data, posts: [{ id: nextId("post", data.posts.map((post) => post.id)), author: data.profile, body: required(action.body, "Post", 3000), category: action.category, createdAt, likes: [], comments: [], sharedOnProfile: action.shareOnProfile ?? false }, ...data.posts] };
+    case "set_post_sharing":
+      if (!data.posts.some(post => post.id === action.id && post.author.id === id)) throw new Error("Only the author can change sharing.");
+      return { ...data, posts: data.posts.map(post => post.id === action.id ? { ...post, sharedOnProfile: action.shared } : post) };
     case "toggle_like":
       return { ...data, posts: data.posts.map((post) => post.id === action.id ? { ...post, likes: post.likes.includes(id) ? post.likes.filter((like) => like !== id) : [...post.likes, id] } : post) };
     case "add_comment": {
@@ -110,14 +113,23 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
     }
     case "delete_expense":
       return { ...data, expenses: data.expenses.filter((expense) => expense.id !== action.id) };
+    case "create_club_event":
     case "create_event": {
       const startsAt = new Date(action.startsAt);
       if (!Number.isFinite(startsAt.getTime())) throw new Error("Choose a valid event date and time.");
       if (action.description.trim().length > 3000) throw new Error("Description must be 3000 characters or fewer.");
-      return { ...data, events: [...data.events, { id: nextId("event", data.events.map((event) => event.id)), title: required(action.title, "Event name", 160), description: action.description.trim(), location: required(action.location, "Location", 160), startsAt: startsAt.toISOString(), category: action.category, cover: action.cover, attendees: [], host: id }].sort((a, b) => a.startsAt.localeCompare(b.startsAt)) };
+      if (action.type === "create_club_event" && data.events.some(event => event.id === action.id)) return data;
+      return { ...data, events: [...data.events, { id: action.type === "create_club_event" ? action.id : nextId("event", data.events.map((event) => event.id)), title: required(action.title, "Event name", 160), description: action.description.trim(), location: required(action.location, "Location", 160), startsAt: startsAt.toISOString(), category: action.type === "create_club_event" ? "Clubs" : action.category, ...(action.type === "create_club_event" ? { clubId: action.clubId } : {}), cover: action.cover, attendees: [], host: id }].sort((a, b) => a.startsAt.localeCompare(b.startsAt)) };
     }
     case "toggle_rsvp":
       return { ...data, events: data.events.map((event) => event.id === action.id ? { ...event, attendees: event.attendees.includes(id) ? event.attendees.filter((attendee) => attendee !== id) : [...event.attendees, id] } : event) };
+    case "respond_event":
+      return { ...data, events: data.events.map(event => event.id === action.id ? { ...event, response: action.response, removed: false, attendees: action.response === "going" ? [...new Set([...event.attendees, id])] : event.attendees.filter(user => user !== id), attendeeCount: undefined } : event) };
+    case "remove_event":
+      if (!data.events.some(event => event.id === action.id && event.response === "not_going")) throw new Error("Choose Not going before removing an event.");
+      return { ...data, events: data.events.map(event => event.id === action.id ? { ...event, removed: true } : event) };
+    case "restore_event":
+      return { ...data, events: data.events.map(event => event.id === action.id ? { ...event, removed: false } : event) };
     case "update_profile": {
       const profile = { ...data.profile, name: required(action.name, "Name", 80), major: action.major.trim(), year: action.year.trim(), bio: action.bio.trim() };
       if (profile.major.length > 100 || profile.year.length > 40 || profile.bio.length > 500) throw new Error("One of your profile fields is too long.");

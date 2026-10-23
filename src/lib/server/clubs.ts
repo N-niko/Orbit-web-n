@@ -25,7 +25,7 @@ export async function clubBody<T>(request: Request, schema: z.ZodType<T>) {
 
 export function clubError(error: { code?: string }) {
   if (error.code === "23505") return privateJson({ error: "A club with that name already exists. Try searching for it." }, 409);
-  if (error.code === "42501") return privateJson({ error: "Follow this club to access its chat." }, 403);
+  if (error.code === "42501") return privateJson({ error: "Follow this club to access its activity." }, 403);
   if (error.code === "P0001") return privateJson({ error: "You’re sending quickly. Wait a minute and try again." }, 429);
   if (error.code === "P0004") return privateJson({ error: "You can create up to 5 clubs per day. Try again tomorrow." }, 429);
   if (["PGRST202", "PGRST205", "42P01"].includes(error.code ?? "")) return privateJson({ error: "Clubs are temporarily unavailable. Please try again later." }, 503);

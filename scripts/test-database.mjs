@@ -36,9 +36,11 @@ try {
   await db.exec(await readFile(new URL("../supabase/tests/orbit_people_search.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_visibility.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_clubs.sql", import.meta.url), "utf8"));
-  console.log("Database checks passed: all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
+  await db.exec(await readFile(new URL("../supabase/tests/orbit_publishing.sql", import.meta.url), "utf8"));
+  console.log("Database checks passed: profile post sharing, club posts, owner events, private event choices, removal and restore, all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
 } catch (error) {
-  console.error("Database check failed:", error.message, error.detail || "", error.where || "");
+  console.error("Database check failed:", error.message, error.detail || "", error.where || "", "position", error.position || error.internalPosition || "");
+  if (error.query && error.position) console.error(error.query.slice(Math.max(0, Number(error.position)-180), Number(error.position)+180));
   process.exitCode = 1;
 } finally {
   await db.close();

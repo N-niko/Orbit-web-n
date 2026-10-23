@@ -6,6 +6,9 @@ import { defaultVisibility, visibilityLabels, visibleClubMembers, type DemoClub,
 import type { CampusEvent, OrbitAction, OrbitData } from "@/lib/types";
 import { MemberAvatar } from "./secondary-shared";
 import { EventArtwork } from "./events";
+import { EventResponseControls } from "./event-controls";
+import { eventGoingCount } from "@/lib/events";
+import { profilePageSchema } from "@/lib/profile-page";
 import "./discovery.css";
 
 export function ProfileVisibilitySettings({ value, onChange, onPreview, demo }: { value: ProfileVisibility; onChange: (field: VisibilityField, visible: boolean) => Promise<void>; onPreview: () => void; demo: boolean }) {
@@ -18,12 +21,12 @@ export function ProfileVisibilitySettings({ value, onChange, onPreview, demo }: 
     catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save your visibility. Try again."); }
     finally { setPending(false); }
   }
-  const fields: VisibilityField[] = demo ? Object.keys(defaultVisibility) as VisibilityField[] : ["major", "year", "bio"];
+  const fields: VisibilityField[] = demo ? Object.keys(defaultVisibility) as VisibilityField[] : ["major", "year", "bio", "posts"];
   return <section className="panel visibility-settings"><div className="discovery-section-heading"><div><span className="discovery-eyebrow"><ShieldCheck size={15} />PROFILE VISIBILITY</span><h2>Choose what you share.</h2></div><button className="btn btn-secondary" onClick={onPreview}><Eye size={15} />Preview my profile</button></div>
     <p className="muted">Choose which details other students see. Your name and campus stay visible.</p>
     <div className="visibility-options">{fields.map(field => <label key={field}><span><strong>{visibilityLabels[field]}</strong><small>{value[field] ? "Visible on your profile" : "Hidden from other students"}</small></span><input type="checkbox" role="switch" checked={value[field]} disabled={pending} aria-label={`Show ${visibilityLabels[field].toLowerCase()} on my profile`} onChange={event => { void change(field, event.target.checked); }} /><i aria-hidden="true" /></label>)}</div>
     <p role="status" className="muted">{pending ? "Saving visibility…" : message}</p>{error && <p className="form-error" role="alert">{error}</p>}
-    <p className="visibility-demo-note">{demo ? "Demo changes reset when you leave." : "Changes save automatically. These switches also hide details from search. Posts keep their existing shared-space audience."}</p>
+    <p className="visibility-demo-note">{demo ? "Demo changes reset when you leave." : "Changes save automatically. The Posts switch controls the Home feed posts you select to share on your profile."}</p>
   </section>;
 }
 
@@ -42,11 +45,47 @@ export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, o
   const club = target.type === "club" ? directory.clubs.find(club => club.id === target.id) : undefined;
   const event = target.type === "event" ? data.events.find(event => event.id === target.id) : undefined;
   return <div className="secondary-view discovery-page"><button className="discovery-back" onClick={onBack}><ArrowLeft size={16} />Back to your Orbit</button>
-    {person ? <PublicPerson person={person} clubs={directory.clubs} onOpen={onOpen} own={person.profile.id === data.profile.id} demo={demo} onPrivacy={onPrivacy} /> :
+    {person ? <PersonPage key={person.profile.id} person={person} clubs={directory.clubs} onOpen={onOpen} own={person.profile.id === data.profile.id} demo={demo} onPrivacy={onPrivacy} /> :
       club ? <ClubPreview club={club} directory={directory} onOpen={onOpen} /> :
       event ? <EventDetail key={event.id} event={event} directory={directory} userId={data.profile.id} onAction={onAction} demo={demo} onOpen={onOpen} /> :
       <section className="panel empty-state"><h1 id="discovery-heading" tabIndex={-1}>This page is no longer available.</h1><p>Search again to find another person, club, or event.</p></section>}
   </div>;
+}
+
+function PersonPage(props: Parameters<typeof PublicPerson>[0]) {
+  const [loaded, setLoaded] = useState<DirectoryPerson | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(!props.demo);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (props.demo) return;
+    const controller = new AbortController(); setLoading(true); setError("");
+    void fetch(`/api/profiles/${props.person.profile.id}`, { cache: "no-store", signal: controller.signal }).then(async response => {
+      const result = await response.json(); if (!response.ok) throw new Error(result.error || "Profile could not load.");
+      const parsed = profilePageSchema.parse(result);
+      if (!controller.signal.aborted) { setLoaded({ ...props.person, profile: parsed.profile, posts: parsed.posts }); setHasMore(parsed.hasMore); }
+    }).catch(cause => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "Profile could not load."); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [props.person.profile.id, props.demo, retry]);
+  async function older() {
+    if (!loaded?.posts?.length) return; setLoading(true); setError("");
+    try {
+      const response = await fetch(`/api/profiles/${props.person.profile.id}?before=${loaded.posts.at(-1)!.id}`, { cache: "no-store" });
+      const result = await response.json(); if (!response.ok) throw new Error(result.error || "Posts could not load.");
+      const parsed = profilePageSchema.parse(result);
+      setLoaded(current => current ? { ...current, profile: parsed.profile, posts: parsed.posts === null ? null : [...new Map([...(current.posts ?? []), ...parsed.posts].map(post => [post.id, post])).values()] } : current);
+      setHasMore(parsed.hasMore);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Posts could not load."); }
+    finally { setLoading(false); }
+  }
+  return <>
+    {!props.demo && error && <div className="panel discovery-section" role="alert"><p>{error}</p><button className="btn btn-secondary" onClick={() => setRetry(value => value + 1)}>Try again</button></div>}
+    <PublicPerson {...props} person={props.demo ? props.person : loaded ?? { ...props.person, posts: null }} />
+    {loading && <p className="muted" role="status">Loading profile posts…</p>}
+    {!props.demo && hasMore && <button className="btn btn-secondary" disabled={loading} onClick={() => { void older(); }}>Load earlier posts</button>}
+  </>;
 }
 
 function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy }: { person: DirectoryPerson; clubs: DemoClub[]; onOpen: (target: SearchTarget) => void; own: boolean; demo: boolean; onPrivacy: () => void }) {
@@ -54,7 +93,7 @@ function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy }: { person:
   return <>
     <section className="panel public-profile-hero"><div className="public-profile-cover"><span>IN YOUR ORBIT</span><i>✳</i></div><div className="public-profile-intro"><MemberAvatar profile={profile} /><div><span className="discovery-pill">{own ? "Your profile · visitor preview" : "Student profile"}</span><h1 id="discovery-heading" tabIndex={-1}>{profile.name}</h1><p><GraduationCap size={16} />{profile.university}</p></div>{own && <button className="btn btn-secondary" onClick={onPrivacy}><ShieldCheck size={16} />Edit visibility</button>}</div></section>
     <div className="discovery-columns"><div className="discovery-main">
-      <section className="panel discovery-section"><div className="discovery-section-heading"><h2>A little about {own ? "you" : profile.name.split(" ")[0]}</h2><span className="discovery-muted-label">{demo ? "Demo profile" : posts === null ? "Orbit directory" : "Shared in your workspace"}</span></div>
+      <section className="panel discovery-section"><div className="discovery-section-heading"><h2>A little about {own ? "you" : profile.name.split(" ")[0]}</h2><span className="discovery-muted-label">{demo ? "Demo profile" : posts === null ? "Orbit directory" : "Shared on this profile"}</span></div>
         {profile.bio ? <p className="public-bio">{profile.bio}</p> : <p className="hidden-detail">No bio shared.</p>}
         {(profile.major || profile.year || profile.graduationYear) && <div className="public-facts">{profile.major && <div><span>MAJOR</span><strong>{profile.major}</strong></div>}{(profile.year || profile.graduationYear) && <div><span>YEAR</span><strong>{profile.graduationYear ? `Class of ${profile.graduationYear}` : profile.year}</strong></div>}</div>}
       </section>
@@ -80,11 +119,6 @@ function ClubPreview({ club, directory, onOpen }: { club: DemoClub; directory: D
 }
 
 function EventDetail({ event, directory, userId, onAction, demo, onOpen }: { event: CampusEvent; directory: Directory; userId: string; onAction: (action: OrbitAction) => Promise<void>; demo: boolean; onOpen: (target: SearchTarget) => void }) {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
   const host = directory.people.find(person => person.profile.id === event.host);
-  const going = event.attendees.includes(userId);
-  const past = new Date(event.startsAt).getTime() < Date.now();
-  async function rsvp() { setPending(true); setError(""); try { await onAction({ type: "toggle_rsvp", id: event.id }); } catch (cause) { setError(cause instanceof Error ? cause.message : "Please try again."); } finally { setPending(false); } }
-  return <><section className="panel discovery-event-hero"><EventArtwork cover={event.cover} category={event.category} title={event.title} /><div className="discovery-event-heading"><span className="discovery-pill">Event · {demo ? "Demo" : event.category}</span><h1 id="discovery-heading" tabIndex={-1}>{event.title}</h1><p>{event.description}</p></div></section><div className="discovery-columns"><section className="panel discovery-section"><h2>The details</h2><div className="event-detail-facts"><p><CalendarDays size={20} />{new Date(event.startsAt).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}</p><p><MapPin size={20} />{event.location}</p><p><Users size={20} />{event.attendees.length} going</p></div>{host && <><h2>Your host</h2><button className="public-member" onClick={() => onOpen({ type: "person", id: host.profile.id })}><MemberAvatar profile={host.profile} /><span><strong>{host.profile.name}</strong><small>View student profile</small></span><ArrowUpRight size={16} /></button></>}</section><aside className="discovery-side"><section className="panel discovery-section"><h2>{going ? "You’re on the list." : "Make it a plan."}</h2><p className="discovery-rsvp-copy">{demo ? "Try an RSVP in the demo. It won’t contact anyone." : "Let your workspace know you’re joining."}</p>{error && <p className="form-error" role="alert">{error}</p>}<button className={`btn ${going ? "btn-secondary" : "btn-primary"} discovery-rsvp`} disabled={pending || (past && !going)} onClick={rsvp}>{pending ? "Saving…" : going ? <><Check size={16} />Going · cancel RSVP</> : past ? "Event ended" : "I’m in"}</button></section></aside></div></>;
+  return <><section className="panel discovery-event-hero"><EventArtwork cover={event.cover} category={event.category} title={event.title} /><div className="discovery-event-heading"><span className="discovery-pill">Event · {demo ? "Demo" : event.category}</span><h1 id="discovery-heading" tabIndex={-1}>{event.title}</h1><p>{event.description}</p></div></section><div className="discovery-columns"><section className="panel discovery-section"><h2>The details</h2><div className="event-detail-facts"><p><CalendarDays size={20} />{new Date(event.startsAt).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}</p><p><MapPin size={20} />{event.location}</p><p><Users size={20} />{eventGoingCount(event)} going</p></div>{host && <><h2>Your host</h2><button className="public-member" onClick={() => onOpen({ type: "person", id: host.profile.id })}><MemberAvatar profile={host.profile} /><span><strong>{host.profile.name}</strong><small>View student profile</small></span><ArrowUpRight size={16} /></button></>}</section><aside className="discovery-side"><section className="panel discovery-section"><h2>Your plans</h2><p className="discovery-rsvp-copy">{demo ? "Try the choices in this demo. No one will be contacted." : event.clubId ? `An event for followers of ${event.clubName}.` : "A plan for your shared space."}</p><EventResponseControls event={event} userId={userId} onAction={onAction} /></section></aside></div></>;
 }

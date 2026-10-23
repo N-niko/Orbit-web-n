@@ -35,6 +35,6 @@ describe("club chat routes", () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "42501" } });
     const response = await GET(new Request(`https://orbit.example/api/clubs/${id}/messages`), context());
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: "Follow this club to access its chat." });
+    expect(await response.json()).toEqual({ error: "Follow this club to access its activity." });
   });
 });

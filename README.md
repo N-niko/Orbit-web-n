@@ -45,7 +45,7 @@ npm start
 
 Residence halls follow [Caldwell’s official list](https://www.caldwell.edu/residence-life/residence-halls/): Mother Joseph Residence Hall, Dominican Hall, and Rosary Hall. Residency is self-reported and does not grant extra access. Workspace membership still controls shared profiles, tasks, bills, and photos. Verified residence-based permissions are a later feature. The photo bucket is private; signed URLs last one hour and profiles use initials if a photo cannot load.
 
-New accounts begin with an empty workspace called “My Orbit.” Create a workspace or copy its invite code from the roommate workspace settings. Another signed-in user can enter that code to join. Copying a code does not send an email or invitation. Joining or creating a workspace switches the active workspace; all activity shown belongs to the active workspace.
+New accounts begin with an empty workspace called “My Orbit.” Create a workspace or copy its invite code from the roommate workspace settings. Another signed-in user can enter that code to join. Copying a code does not send an email or invitation. Joining or creating a workspace switches the active workspace. Its feed, tasks, and expenses remain separate; followed clubs and selected profile posts work across workspaces.
 
 If you already use the Supabase CLI, you can apply the checked-in migration to a linked project with `supabase db push` instead of the SQL Editor. Do not apply it twice to the same database.
 
@@ -71,23 +71,23 @@ No GitHub repository, Supabase project, or Vercel deployment is created by this 
 | `src/lib/server` | Request validation and API response helpers |
 | `supabase/migrations` | Database schema, policies, and authenticated RPCs |
 
-`GET /api/orbit` loads the signed-in account’s active workspace. `POST /api/orbit` validates an action and executes an authenticated database transaction, returning updated data. Shared types describe the actions. Private responses use `no-store`; workspace membership is enforced in the database. Accounts can read shared profiles and activity only within workspaces they belong to. Task and expense deletion is limited to their creator; other workspace members can complete tasks.
+`GET /api/orbit` loads the signed-in account’s active workspace. `POST /api/orbit` validates an action and executes an authenticated database transaction, returning updated data. Shared types describe the actions. Private responses use `no-store`; workspace membership is enforced in the database. Workspace activity stays within that workspace. Selected profile posts and followed-club activity use their own access rules. Task and expense deletion is limited to their creator; other workspace members can complete tasks.
 
 ## Current scope
 
-- Campus feed with general posts, questions, marketplace posts, likes, and comments.
-- Shared tasks and groceries with assignees, due dates, and completion.
-- Expense tracking with equal split estimates across current workspace members.
-- Event creation, categories, and RSVP tracking.
-- Student profiles and workspace creation or joining by code.
-- Login landing page and one-time profile, housing, and optional photo setup.
-- Global search with people first, then clubs, then events; result category labels and keyboard navigation.
-- Student profiles with shared information and posts, event details with RSVP, and fictional club previews in demo mode.
-- Demo profile visibility controls for major, year, bio, courses, clubs, and posts. Hidden fields are omitted from visitor profiles and search; hidden club memberships are also omitted from club rosters. These switches reset with the demo and do not change real-account privacy settings.
+- Home feed posts, questions, marketplace posts, likes, and comments within your shared space.
+- A “Share on my profile” switch on each new or existing post. Signed-in students can open a profile and read its selected posts across workspaces. My profile’s Posts visibility switch hides the entire section. Historical posts start private; club posts never appear on a public profile.
+- Saved profile visibility for major, year, bio, and posts. Public profile pages exclude email, housing, photos, workspace details, comment bodies, and lists of people who liked a post.
+- Club discovery, creation, following, follower-only posts, and group chat. Following gives access immediately; there is no club approval workflow. Posts and chat are separate, with bounded history and retry-safe publishing.
+- Club owners create club events. Followers see them in the club and in Events & plans alongside shared-space events.
+- Going / Not going choices. Not going reveals Remove, which hides the event for that account only. Removed events can be restored from the Removed tab.
+- Shared tasks, groceries, expense tracking, student profiles, workspace invite codes, campus resource links, and account onboarding.
 
-Try **Try the demo**, search **design**, and open the student, club, and event results. **My profile → Choose what you share → Preview my profile** demonstrates visibility controls. The course names and clubs are illustrative data. Signed-in people search queries basic profiles across Orbit accounts once you enter at least two characters. Results are capped at 24, and only names, university, major, year, graduation year, and avatar colors are shared across workspaces. Private bios, housing details, emails, photos, posts, and workspace contents are excluded. Events remain scoped to the current workspace; persistent privacy controls and real club management are not implemented yet.
+Apply all migrations in filename order, once each. Existing installations need [profile posts and club activity](supabase/migrations/20261023130935_profile_posts_and_club_activity.sql) before deploying this update. It also requires the preceding profile visibility and clubs migrations.
 
-Expense balances are tracking estimates, and no money is transferred. Campus posts and events are member-created; Orbit has no university systems integration. The app does not send workspace invitations, direct messages, calendar invitations, or push notifications. Updates load on actions and refresh; shared data also refreshes every 30 seconds while the tab is visible; there is no realtime subscription. This version uses one active workspace at a time and does not include a workspace switcher or invite-code rotation.
+The demo uses fictional people and local state that resets when you leave. Live club posts and chat are available only while following; leaving a club removes its events from your plans. Event responses and personal removals persist if you follow again. Public profile posts show text and reaction counts; reactions and comments remain within the original shared space.
+
+Expense balances are tracking estimates; no money is transferred. Orbit is an independent student project without university systems integration. It does not send workspace invitations, direct messages, calendar invitations, or push notifications. Data refreshes after actions and periodically while visible; chat refreshes more frequently. This version uses one active workspace at a time and has no workspace switcher or invite-code rotation.
 
 ## Verification
 

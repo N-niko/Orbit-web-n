@@ -14,7 +14,7 @@ select public.orbit_set_profile_visibility('bio',false);
 do $$ declare v_profile jsonb; begin
   v_profile := public.orbit_get_data()->'profile';
   if v_profile->>'major' <> 'Secret Biology' or v_profile->>'bio' <> 'Private introduction'
-     or v_profile->'visibility' <> '{"major":false,"year":false,"bio":false}'::jsonb then
+     or v_profile->'visibility' <> '{"major":false,"year":false,"bio":false,"posts":true}'::jsonb then
     raise exception 'Visibility did not persist or erased owner data'; end if;
   begin perform public.orbit_set_profile_visibility('name',false);
     raise exception 'Invalid visibility field accepted'; exception when invalid_parameter_value then null; end;

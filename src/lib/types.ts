@@ -16,7 +16,7 @@ export interface Profile {
   avatarPath?: string | null;
   avatarUrl?: string;
   onboardingCompletedAt?: string | null;
-  visibility?: { major: boolean; year: boolean; bio: boolean };
+  visibility?: { major: boolean; year: boolean; bio: boolean; posts?: boolean };
 }
 
 export interface Comment {
@@ -34,6 +34,7 @@ export interface Post {
   createdAt: string;
   likes: string[];
   comments: Comment[];
+  sharedOnProfile?: boolean;
 }
 
 export interface Task {
@@ -63,6 +64,12 @@ export interface CampusEvent {
   cover: string;
   attendees: string[];
   host: string;
+  hostName?: string;
+  clubId?: string | null;
+  clubName?: string | null;
+  attendeeCount?: number;
+  response?: "going" | "not_going" | null;
+  removed?: boolean;
 }
 
 export interface Workspace {
@@ -82,7 +89,8 @@ export interface OrbitData {
 }
 
 export type OrbitAction =
-  | { type: "create_post"; body: string; category: PostCategory }
+  | { type: "create_post"; body: string; category: PostCategory; shareOnProfile?: boolean }
+  | { type: "set_post_sharing"; id: string; shared: boolean }
   | { type: "toggle_like"; id: string }
   | { type: "add_comment"; id: string; body: string }
   | { type: "create_task"; title: string; assignee: string; dueDate: string; kind: "task" | "grocery" }
@@ -92,7 +100,10 @@ export type OrbitAction =
   | { type: "delete_expense"; id: string }
   | { type: "create_event"; title: string; description: string; location: string; startsAt: string; category: EventCategory; cover: string }
   | { type: "toggle_rsvp"; id: string }
+  | { type: "respond_event"; id: string; response: "going" | "not_going" }
+  | { type: "remove_event" | "restore_event"; id: string }
+  | { type: "create_club_event"; id: string; clubId: string; title: string; description: string; location: string; startsAt: string; cover: string }
   | { type: "update_profile"; name: string; major: string; year: string; bio: string }
-  | { type: "update_visibility"; field: "major" | "year" | "bio"; visible: boolean }
+  | { type: "update_visibility"; field: "major" | "year" | "bio" | "posts"; visible: boolean }
   | { type: "join_workspace"; code: string }
   | { type: "create_workspace"; name: string };

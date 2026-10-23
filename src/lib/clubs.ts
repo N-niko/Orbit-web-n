@@ -9,6 +9,7 @@ export const createClubSchema = z.object({
 }).strict();
 export const followClubSchema = z.object({ following: z.boolean() }).strict();
 export const sendClubMessageSchema = z.object({ id: z.uuid(), body: z.string().trim().min(1).max(2000) }).strict();
+export const publishClubPostSchema = sendClubMessageSchema.extend({ body: z.string().trim().min(1).max(3000) });
 export const clubSchema = createClubSchema.omit({ id: true }).extend({
   id: z.string(), createdBy: z.string(), createdAt: z.string(), followerCount: z.number().int().nonnegative(), following: z.boolean(),
 });
@@ -18,11 +19,12 @@ export const clubMessagesSchema = z.object({ messages: z.array(clubMessageSchema
 export type Club = z.infer<typeof clubSchema>;
 export type ClubMessage = z.infer<typeof clubMessageSchema>;
 export type CreateClub = z.infer<typeof createClubSchema>;
-export type DemoClubs = { clubs: Club[]; messages: Record<string, ClubMessage[]> };
+export type DemoClubs = { clubs: Club[]; messages: Record<string, ClubMessage[]>; posts: Record<string, ClubMessage[]> };
 
 export function createDemoClubs(): DemoClubs {
   return { clubs: demoClubs.map(club => ({ ...club, category: clubCategories.includes(club.category as typeof clubCategories[number]) ? club.category as typeof clubCategories[number] : "Other",
     color: club.color as typeof clubColors[number], createdBy: "maya", createdAt: "2026-10-01T12:00:00Z", followerCount: 1, following: false })),
+    posts: Object.fromEntries(demoClubs.map(club => [club.id, []])),
     messages: Object.fromEntries(demoClubs.map(club => [club.id, [{ id: `${club.id}-welcome`, body: `Welcome to ${club.name}! What would you like to do together?`, createdAt: "2026-10-22T12:00:00Z", author: { id: "maya", name: "Maya Patel", color: "#f6e5dc" } }]])) };
 }
 

@@ -2608,3 +2608,20 @@
     font-size:10px
   }
 }
+
+/* Saved event choices and the personal removed list. */
+.event-plan-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:14px;margin:28px 0 18px}
+.event-plan-tabs button{padding:10px 17px;border-radius:9px;color:var(--muted);font-size:12px}
+.event-plan-tabs button[aria-pressed=true]{background:var(--lavender);color:var(--purple);font-weight:650}
+.event-response-controls{display:flex;flex-direction:column;gap:9px;align-items:flex-end;min-width:0}
+.event-response-options{display:flex;flex-wrap:wrap;gap:7px}
+.event-response-options .btn{padding:9px 12px;gap:5px;font-size:11px;white-space:nowrap}
+.event-response-options .event-response-selected{border-color:var(--purple);background:var(--lavender);color:var(--purple)}
+.event-response-controls .event-remove{font-size:10px;text-align:right;line-height:1.5}
+.event-response-controls>small{font-size:10px;color:var(--muted)}
+.event-response-controls .form-error{max-width:240px;font-size:11px}
+.event-card-footer{align-items:flex-start;flex-wrap:wrap;gap:14px}
+.event-attendees{padding-top:10px}
+.discovery-side .event-response-controls{align-items:flex-start}
+.event-category-badge{max-width:calc(100% - 100px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:450px){.event-card-footer{flex-direction:column}.event-response-controls{align-items:flex-start}.event-response-options .btn{padding:10px 14px}.event-plan-tabs button{padding:10px 12px}}

@@ -33,3 +33,10 @@
 @media(max-width:760px){.mobile-theme-control{display:flex}}
 @media(max-width:760px){.sidebar{visibility:hidden}.sidebar.sidebar-open{visibility:visible}.hero-copy{flex-basis:72%;padding:25px 22px}.hero-copy h2{font-size:32px;letter-spacing:-1.4px;white-space:nowrap}.hero-illustration{width:45%;right:-23px;height:70%;top:24%}.hero-copy>p{font-size:10px}.hero-button{font-size:9px}.welcome-hero{min-height:300px}}
 @media(max-width:360px){.hero-copy h2{font-size:29px}.hero-copy{padding-left:18px}.hero-illustration{width:42%;right:-22px}.hero-copy>p{font-size:9px}}
+
+.profile-post-switch{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);position:relative;cursor:pointer;line-height:1.6}
+.profile-post-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.profile-post-switch i{display:block;width:29px;height:17px;border-radius:20px;background:var(--border);position:relative;flex-shrink:0;transition:background .15s}
+.profile-post-switch i:after{content:"";position:absolute;width:11px;height:11px;left:3px;top:3px;border-radius:50%;background:white;transition:transform .15s}
+.profile-post-switch input:checked+i{background:var(--purple)}.profile-post-switch input:checked+i:after{transform:translateX(12px)}.profile-post-switch input:focus-visible+i{outline:2px solid var(--purple);outline-offset:3px}.profile-post-switch:has(input:disabled){opacity:.6;cursor:wait}
+.composer-sharing{padding:0 0 15px;display:flex;flex-direction:column;gap:7px}.composer-sharing>small{color:var(--muted);font-size:10px}.post-share-choice{margin-bottom:17px}.post-author-link{font-size:13px;font-weight:650;text-align:left;color:var(--text)}.post-author-link:hover{color:var(--purple);text-decoration:underline}

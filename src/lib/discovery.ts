@@ -51,11 +51,11 @@ export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = d
     return { profile: visibleProfile,
       courses: details && visibility.courses ? details.courses : null,
       clubIds: details && visibility.clubs ? details.clubIds : null,
-      posts: visibility.posts ? data.posts.filter(post => post.author.id === profile.id).map(post => ({ id: post.id, body: post.body,
+      posts: visibility.posts ? data.posts.filter(post => post.author.id === profile.id && (demo ? post.sharedOnProfile !== false : post.sharedOnProfile === true)).map(post => ({ id: post.id, body: post.body,
         category: post.category, createdAt: post.createdAt, likeCount: post.likes.length, commentCount: post.comments.length })) : null,
     };
   });
-  return { people, clubs, events: data.events };
+  return { people, clubs, events: data.events.filter(event => !event.removed) };
 }
 export type Directory = ReturnType<typeof buildDirectory>;
 
