@@ -20,8 +20,9 @@ export function PostAttachments({ files }: { files: Attachment[] }) {
   </div>;
  })}</div>;
 }
-export function AttachmentPicker({ files,onChange,demo,disabled,onBusy }: {
+export function AttachmentPicker({ files,onChange,demo,disabled,onBusy,imagesOnly=false,endpoint="/api/attachments",bucket="orbit-post-files",persistedIds=[] }: {
  files: Attachment[]; onChange: (files:Attachment[])=>void; demo:boolean; disabled:boolean; onBusy:(busy:boolean)=>void;
+ imagesOnly?:boolean; endpoint?:string; bucket?:string; persistedIds?:string[];
 }) {
  const input=useRef<HTMLInputElement>(null); const [busy,setBusy]=useState(false); const [error,setError]=useState("");
  const mounted=useRef(true);
@@ -30,20 +31,20 @@ export function AttachmentPicker({ files,onChange,demo,disabled,onBusy }: {
   const selected=Array.from(event.target.files ?? []); event.target.value=""; if (!selected.length) return;
   setError("");
   if (files.length+selected.length>maxPostFiles) {setError("Attach up to 4 files per post.");return;}
-  for(const file of selected)if (!fileMime(file.name)||!file.size||file.size>maxFileSize) {setError(!fileMime(file.name) ? "Choose a photo, PDF, Office document, text file, CSV, or ZIP." : "Each file must be between 1 byte and 5 MB.");return;}
+  for(const file of selected)if (!fileMime(file.name)||(imagesOnly&&!fileMime(file.name).startsWith("image/"))||!file.size||file.size>maxFileSize) {setError(imagesOnly&&!fileMime(file.name).startsWith("image/") ? "Choose a JPG, PNG, WebP, or GIF photo." : !fileMime(file.name) ? "Choose a photo, PDF, Office document, text file, CSV, or ZIP." : "Each file must be between 1 byte and 5 MB.");return;}
   setBusy(true);onBusy(true);let next=[...files];
   try {
    for(const file of selected) {
     const id=crypto.randomUUID(); let attachment:Attachment;
     if (demo) attachment={id,name:file.name,size:file.size,mime:fileMime(file.name),previewUrl:demoPreview(file)};
     else {
-     const reserved=reservedFileSchema.parse(await postRequest("/api/attachments",postJson({id,name:file.name,size:file.size})));
+     const reserved=reservedFileSchema.parse(await postRequest(endpoint,postJson({id,name:file.name,size:file.size})));
      const client=getSupabaseBrowserClient(); if (!client) throw new Error("Please sign in to attach files.");
-     const {error:uploadError}=await client.storage.from("orbit-post-files").upload(reserved.path,new Blob([file],{type:reserved.mime}),{contentType:reserved.mime,upsert:false,cacheControl:"60"});
-     if(uploadError) {void fetch(`/api/attachments/${id}`,{method:"DELETE"}).catch(()=>{});throw new Error("The file could not upload. Please try attaching it again.");}
+     const {error:uploadError}=await client.storage.from(bucket).upload(reserved.path,new Blob([file],{type:reserved.mime}),{contentType:reserved.mime,upsert:false,cacheControl:"60"});
+     if(uploadError) {void fetch(`${endpoint}/${id}`,{method:"DELETE"}).catch(()=>{});throw new Error("The file could not upload. Please try attaching it again.");}
      attachment={id,name:reserved.name,size:reserved.size,mime:reserved.mime};
     }
-    if(!mounted.current){if(!demo)void fetch(`/api/attachments/${id}`,{method:"DELETE"}).catch(()=>{});else URL.revokeObjectURL(attachment.previewUrl!);break;}
+    if(!mounted.current){if(!demo)void fetch(`${endpoint}/${id}`,{method:"DELETE"}).catch(()=>{});else URL.revokeObjectURL(attachment.previewUrl!);break;}
     next=[...next,attachment];onChange(next);
    }
   } catch(cause) {if(mounted.current)setError(cause instanceof Error?cause.message:"The file could not upload.");}
@@ -52,15 +53,15 @@ export function AttachmentPicker({ files,onChange,demo,disabled,onBusy }: {
  async function remove(file:Attachment) {
   setBusy(true);onBusy(true);setError("");
   try {
-   if(!demo)await postRequest(`/api/attachments/${file.id}`,{method:"DELETE"});
-   if(file.previewUrl)URL.revokeObjectURL(file.previewUrl);
+   if(!demo&&!persistedIds.includes(file.id))await postRequest(`${endpoint}/${file.id}`,{method:"DELETE"});
+   if(file.previewUrl&&!persistedIds.includes(file.id))URL.revokeObjectURL(file.previewUrl);
    if(mounted.current)onChange(files.filter(item=>item.id!==file.id));
   }catch(cause){if(mounted.current)setError(cause instanceof Error?cause.message:"Could not remove this file.");}
   finally{if(mounted.current){setBusy(false);onBusy(false);}}
  }
- return <div className="attachment-picker"><input ref={input} type="file" accept={acceptedFiles} multiple hidden aria-hidden="true" tabIndex={-1} disabled={disabled||busy} onChange={event=>{void select(event);}}/>
+ return <div className="attachment-picker"><input ref={input} type="file" accept={imagesOnly?".jpg,.jpeg,.png,.webp,.gif":acceptedFiles} multiple hidden aria-hidden="true" tabIndex={-1} disabled={disabled||busy} onChange={event=>{void select(event);}}/>
   {files.length>0&&<ul className="draft-attachments">{files.map(file=><li key={file.id}><FileText size={15}/><span>{file.name}<small>{formatFileSize(file.size)}</small></span><button type="button" className="icon-button" disabled={disabled||busy} aria-label={`Remove attachment ${file.name}`} onClick={()=>{void remove(file);}}><X size={15}/></button></li>)}</ul>}
-  <div className="attachment-picker-tools"><button type="button" className="text-button" disabled={disabled||busy||files.length>=maxPostFiles} onClick={()=>input.current?.click()}><Paperclip size={15}/>{busy?"Uploading…":"Attach photos or files"}</button><small>Up to 4 files · 5 MB each</small></div>
+  <div className="attachment-picker-tools"><button type="button" className="text-button" disabled={disabled||busy||files.length>=maxPostFiles} onClick={()=>input.current?.click()}><Paperclip size={15}/>{busy?"Uploading…":imagesOnly?"Add photos":"Attach photos or files"}</button><small>Up to 4 {imagesOnly?"photos":"files"} · 5 MB each</small></div>
   {busy&&<span className="sr-only" role="status">Uploading attachment…</span>}{error&&<p className="form-error" role="alert">{error}</p>}
  </div>;
 }

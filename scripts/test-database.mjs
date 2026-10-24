@@ -10,7 +10,7 @@ try {
     create role anon nologin;
     create role authenticated nologin;
     create schema auth;
-    create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}');
+    create table auth.users (id uuid primary key, email text, email_confirmed_at timestamptz, raw_user_meta_data jsonb default '{}');
     create function auth.uid() returns uuid language sql stable as $$
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
     $$;
@@ -38,7 +38,8 @@ try {
   await db.exec(await readFile(new URL("../supabase/tests/orbit_clubs.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_publishing.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_social.sql", import.meta.url), "utf8"));
-  console.log("Database checks passed: profile and club reactions, idempotent comments, attachment ownership and visibility, upload binding, profile post sharing, club posts, owner events, private event choices, removal and restore, all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
+  await db.exec(await readFile(new URL("../supabase/tests/orbit_marketplace.sql", import.meta.url), "utf8"));
+  console.log("Database checks passed: Marketplace campus proof, ownership, photo binding, filters, saves, private inquiries, pagination, reports, email changes, profile and club reactions, idempotent comments, attachment ownership and visibility, upload binding, profile post sharing, club posts, owner events, private event choices, removal and restore, all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
 } catch (error) {
   console.error("Database check failed:", error.message, error.detail || "", error.where || "", "position", error.position || error.internalPosition || "");
   if (error.query && error.position) console.error(error.query.slice(Math.max(0, Number(error.position)-180), Number(error.position)+180));
