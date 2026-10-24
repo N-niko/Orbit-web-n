@@ -26,10 +26,10 @@ export function createDemoData(now = new Date()): OrbitData {
     profile: alex,
     workspace: { id: "workspace-1", name: "The Maple House", inviteCode: "MAPLEHOUSE026", members },
     posts: [
-      { sharedOnProfile: true, id: "post-1", author: maya, body: "Anyone up for a library study session? 📚\nHeading to the second floor around 3. Bring your to-do list — I’ll bring the snacks.", category: "general", createdAt: ago(24), likes: ["jordan", "sam"], comments: [{ id: "comment-1", author: jordan, body: "Count me in! Saving a seat by the windows?", createdAt: ago(16) }] },
-      { sharedOnProfile: true, id: "post-2", author: jordan, body: "Sunday reset, Maple House edition 🌿\nFresh groceries, a clean kitchen, and absolutely no unread group chat messages. We can dream.", category: "general", createdAt: ago(95), likes: ["alex", "maya", "sam"], comments: [{ id: "comment-2", author: sam, body: "I can handle the kitchen after class 🙌", createdAt: ago(72) }] },
-      { sharedOnProfile: true, id: "post-3", author: sam, body: "Does anyone know a quiet spot on campus for a video interview? Ideally somewhere I can book for an hour.", category: "question", createdAt: ago(180), likes: ["maya"], comments: [{ id: "comment-3", author: alex, body: "The library has individual study rooms — check the desk for availability!", createdAt: ago(145) }] },
-      { sharedOnProfile: true, id: "post-4", author: alex, body: "Passing along my desk lamp before I upgrade my setup. Great condition, warm light. $12 — message me when you see me around campus.", category: "marketplace", createdAt: ago(280), likes: ["jordan"], comments: [] },
+      { id: "post-1", author: maya, body: "Anyone up for a library study session? 📚\nHeading to the second floor around 3. Bring your to-do list — I’ll bring the snacks.", category: "general", createdAt: ago(24), likes: ["jordan", "sam"], comments: [{ id: "comment-1", author: jordan, body: "Count me in! Saving a seat by the windows?", createdAt: ago(16) }] },
+      { id: "post-2", author: jordan, body: "Sunday reset, Maple House edition 🌿\nFresh groceries, a clean kitchen, and absolutely no unread group chat messages. We can dream.", category: "general", createdAt: ago(95), likes: ["alex", "maya", "sam"], comments: [{ id: "comment-2", author: sam, body: "I can handle the kitchen after class 🙌", createdAt: ago(72) }] },
+      { id: "post-3", author: sam, body: "Does anyone know a quiet spot on campus for a video interview? Ideally somewhere I can book for an hour.", category: "question", createdAt: ago(180), likes: ["maya"], comments: [{ id: "comment-3", author: alex, body: "The library has individual study rooms — check the desk for availability!", createdAt: ago(145) }] },
+      { id: "post-4", author: alex, body: "Passing along my desk lamp before I upgrade my setup. Great condition, warm light. $12 — message me when you see me around campus.", category: "marketplace", createdAt: ago(280), likes: ["jordan"], comments: [] },
     ],
     tasks: [
       { id: "task-1", title: "Take out the recycling", assignee: "alex", dueDate: day(0), completed: false, kind: "task" },
@@ -82,11 +82,21 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
   switch (action.type) {
     case "update_visibility":
       return { ...data, profile: { ...data.profile, visibility: { major: true, year: true, bio: true, posts: true, ...data.profile.visibility, [action.field]: action.visible } } };
-    case "create_post":
-      return { ...data, posts: [{ id: nextId("post", data.posts.map((post) => post.id)), author: data.profile, body: required(action.body, "Post", 3000), category: action.category, createdAt, likes: [], comments: [], sharedOnProfile: action.shareOnProfile ?? false }, ...data.posts] };
-    case "set_post_sharing":
-      if (!data.posts.some(post => post.id === action.id && post.author.id === id)) throw new Error("Only the author can change sharing.");
-      return { ...data, posts: data.posts.map(post => post.id === action.id ? { ...post, sharedOnProfile: action.shared } : post) };
+    case "create_post": {
+      if (!action.body.trim() && !action.attachments?.length) throw new Error("Write a post or attach a file.");
+      if (action.body.trim().length > 3000 || (action.attachments?.length ?? 0)>4) throw new Error("This post is too large.");
+      if (action.id && data.posts.some(post=>post.id===action.id)) return data;
+      return { ...data, posts: [{ id: action.id ?? nextId("post", data.posts.map(post=>post.id)), author: data.profile, body: action.body.trim(), category: action.category, createdAt, likes: [], comments: [], attachments: action.attachments ?? [] }, ...data.posts] };
+    }
+    case "respond_post": {
+      const response=action.action;
+      return { ...data, posts: data.posts.map(post=>{
+        if(post.id!==action.id)return post;
+        if(response.type==="like")return {...post,likes:response.liked?[...new Set([...post.likes,id])]:post.likes.filter(user=>user!==id)};
+        if(post.comments.some(comment=>comment.id===response.id))return post;
+        return {...post,comments:[...post.comments,{id:response.id,author:data.profile,body:required(response.body,"Comment",1000),createdAt}]};
+      }) };
+    }
     case "toggle_like":
       return { ...data, posts: data.posts.map((post) => post.id === action.id ? { ...post, likes: post.likes.includes(id) ? post.likes.filter((like) => like !== id) : [...post.likes, id] } : post) };
     case "add_comment": {

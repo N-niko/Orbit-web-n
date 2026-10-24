@@ -9,8 +9,8 @@ const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date in YYYY-MM-
 
 export const orbitActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("update_visibility"), field: z.enum(["major", "year", "bio", "posts"]), visible: z.boolean() }).strict(),
-  z.object({ type: z.literal("create_post"), body: z.string().trim().min(1).max(3000), category: z.enum(["general", "question", "marketplace"]), shareOnProfile: z.boolean().optional() }).strict(),
-  z.object({ type: z.literal("set_post_sharing"), id: uuid, shared: z.boolean() }).strict(),
+  z.object({ type: z.literal("create_post"), body: z.string().trim().max(3000), category: z.enum(["general", "question", "marketplace"]), id: uuid.optional(), attachmentIds: z.array(uuid).max(4).default([]), shareOnProfile: z.boolean().optional() }).strict(),
+
   z.object({ type: z.literal("toggle_like"), id: uuid }).strict(),
   z.object({ type: z.literal("add_comment"), id: uuid, body: z.string().trim().min(1).max(1000) }).strict(),
   z.object({ type: z.literal("create_task"), title: shortText, assignee: uuid, dueDate: dateOnly, kind: z.enum(["task", "grocery"]) }).strict(),
@@ -27,7 +27,7 @@ export const orbitActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("update_profile"), name: z.string().trim().min(1).max(80), major: z.string().trim().max(100), year: z.string().trim().max(40), bio: z.string().trim().max(500) }).strict(),
   z.object({ type: z.literal("join_workspace"), code: z.string().trim().regex(/^[a-zA-Z0-9]{12}$/, "Invite codes have 12 letters or numbers").transform((value) => value.toUpperCase()) }).strict(),
   z.object({ type: z.literal("create_workspace"), name: z.string().trim().min(1).max(80) }).strict(),
-]);
+]).refine(action => action.type !== "create_post" || Boolean(action.body || action.attachmentIds.length), "Write a post or attach a file.");
 
 /** Block cross-site cookie-authenticated mutations while permitting local tooling. */
 export function hasAllowedOrigin(request: Request): boolean {

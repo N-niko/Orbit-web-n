@@ -32,7 +32,7 @@ describe("server action validation", () => {
     expect(orbitActionSchema.safeParse({ type: "respond_event", id: member, response: "maybe" }).success).toBe(false);
     expect(orbitActionSchema.safeParse({ type: "respond_event", id: member, response: "going", profileId: member }).success).toBe(false);
     expect(orbitActionSchema.safeParse({ type: "create_post", body: "Hello", category: "general", shareOnProfile: "true" }).success).toBe(false);
-    expect(orbitActionSchema.safeParse({ type: "set_post_sharing", id: member, shared: true }).success).toBe(true);
+    expect(orbitActionSchema.safeParse({ type: "set_post_sharing", id: member, shared: true }).success).toBe(false);
     expect(orbitActionSchema.safeParse({ type: "update_visibility", field: "posts", visible: false }).success).toBe(true);
   });
   it("accepts the event colors used by the form and rejects unexpected values", () => {

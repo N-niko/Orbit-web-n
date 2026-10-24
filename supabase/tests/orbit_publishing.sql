@@ -39,14 +39,13 @@ end; $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
 do $$ declare v jsonb; p jsonb; begin
   v:=public.orbit_profile_page('60000000-0000-4000-8000-000000000001'); p:=v->'posts'->0;
-  if jsonb_array_length(v->'posts')<>1 or p->>'body'<>'Shared profile post' or p->>'likeCount'<>'1' or p->>'commentCount'<>'1' then raise exception 'Cross-workspace shared post missing'; end if;
-  if (select count(*) from jsonb_object_keys(p))<>6 or p::text like '%Private workspace comment%'
+  if jsonb_array_length(v->'posts')<>2 or not exists(select 1 from jsonb_array_elements(v->'posts') x where x->>'body'='Shared profile post') or not exists(select 1 from jsonb_array_elements(v->'posts') x where x->>'likeCount'='1' and x->>'commentCount'='1') then raise exception 'Cross-workspace shared post missing'; end if;
+  if (select count(*) from jsonb_object_keys(p))<>8 or p::text like '%Private workspace comment%'
     or (v->'profile') ?| array['email','residenceHall','visibility','housingStatus'] then raise exception 'Profile page exposed private data'; end if;
   if exists(select 1 from public.orbit_posts) then raise exception 'Sharing exposed raw workspace posts'; end if;
   begin perform public.orbit_mutate(jsonb_build_object('type','set_post_sharing','id',current_setting('orbit.test.shared_post'),'shared',false));
     raise exception 'Non-author changed sharing'; exception when insufficient_privilege then null; end;
-  begin perform public.orbit_profile_page('60000000-0000-4000-8000-000000000001',current_setting('orbit.test.private_post')::uuid);
-    raise exception 'Private post cursor accepted'; exception when no_data_found then null; end;
+  perform public.orbit_profile_page('60000000-0000-4000-8000-000000000001',current_setting('orbit.test.private_post')::uuid);
   begin perform public.orbit_club_posts('60000000-0000-4000-8000-000000000010'); raise exception 'Nonfollower read posts'; exception when insufficient_privilege then null; end;
   begin perform public.orbit_club_post('60000000-0000-4000-8000-000000000010',gen_random_uuid(),'Nonfollower'); raise exception 'Nonfollower published'; exception when insufficient_privilege then null; end;
   if exists(select 1 from jsonb_array_elements(public.orbit_get_data()->'events') x where x->>'id'='60000000-0000-4000-8000-000000000030') then raise exception 'Nonfollower saw club event'; end if;
@@ -103,7 +102,7 @@ select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001'
 select public.orbit_set_profile_visibility('posts',true);
 select public.orbit_mutate(jsonb_build_object('type','set_post_sharing','id',current_setting('orbit.test.shared_post'),'shared',false));
 do $$ begin
-  if jsonb_array_length(public.orbit_profile_page(auth.uid())->'posts')<>0 then raise exception 'Post sharing switch failed'; end if;
+  if jsonb_array_length(public.orbit_profile_page(auth.uid())->'posts')<>2 then raise exception 'Retired per-post flag affected the profile setting'; end if;
 end; $$;
 reset role;
 -- A reused workspace event ID must never become a successful club event request.
@@ -135,7 +134,7 @@ set local role authenticated;
 do $$ declare a jsonb; b jsonb; begin
   a:=public.orbit_profile_page(auth.uid());
   b:=public.orbit_profile_page(auth.uid(),(a->'posts'->19->>'id')::uuid);
-  if jsonb_array_length(a->'posts')<>20 or not (a->>'hasMore')::boolean or jsonb_array_length(b->'posts')<>3 or (b->>'hasMore')::boolean then raise exception 'Profile post paging failed'; end if;
+  if jsonb_array_length(a->'posts')<>20 or not (a->>'hasMore')::boolean or jsonb_array_length(b->'posts')<>5 or (b->>'hasMore')::boolean then raise exception 'Profile post paging failed'; end if;
   if exists(select 1 from jsonb_array_elements(a->'posts') x join jsonb_array_elements(b->'posts') y on x->>'id'=y->>'id') then raise exception 'Profile paging duplicated'; end if;
   begin perform public.orbit_club_post('60000000-0000-4000-8000-000000000010',gen_random_uuid(),'Rate limit');
     raise exception 'Club post limit failed' using errcode='XX000'; exception when sqlstate 'P0001' then null; end;

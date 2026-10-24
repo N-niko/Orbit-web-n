@@ -26,14 +26,11 @@ describe("event plans", () => {
   });
 });
 describe("profile posts", () => {
-  it("publishes only selected posts and respects the master switch", () => {
-    let data = createDemoData(now);
-    data = applyDemoAction(data, { type: "create_post", body: "Private post", category: "general", shareOnProfile: false }, now);
-    const id = data.posts[0].id;
-    expect(buildDirectory(data, true).people.find(person => person.profile.id === data.profile.id)?.posts?.some(post => post.id === id)).toBe(false);
-    data = applyDemoAction(data, { type: "set_post_sharing", id, shared: true }, now);
-    expect(buildDirectory(data, true).people.find(person => person.profile.id === data.profile.id)?.posts?.some(post => post.id === id)).toBe(true);
-    expect(data.posts.find(post => post.id === id)?.body).toBe("Private post");
-    expect(buildDirectory(data, true, { ...defaultVisibility, posts: false }).people.find(person => person.profile.id === data.profile.id)?.posts).toBe(null);
+  it("uses the profile setting for all posts", () => {
+    let data=createDemoData(now);
+    data=applyDemoAction(data,{type:"create_post",body:"Profile post",category:"general"},now);
+    const id=data.posts[0].id;
+    expect(buildDirectory(data,true).people.find(person=>person.profile.id===data.profile.id)?.posts?.some(post=>post.id===id)).toBe(true);
+    expect(buildDirectory(data,true,{...defaultVisibility,posts:false}).people.find(person=>person.profile.id===data.profile.id)?.posts).toBe(null);
   });
 });

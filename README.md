@@ -71,21 +71,23 @@ No GitHub repository, Supabase project, or Vercel deployment is created by this 
 | `src/lib/server` | Request validation and API response helpers |
 | `supabase/migrations` | Database schema, policies, and authenticated RPCs |
 
-`GET /api/orbit` loads the signed-in account’s active workspace. `POST /api/orbit` validates an action and executes an authenticated database transaction, returning updated data. Shared types describe the actions. Private responses use `no-store`; workspace membership is enforced in the database. Workspace activity stays within that workspace. Selected profile posts and followed-club activity use their own access rules. Task and expense deletion is limited to their creator; other workspace members can complete tasks.
+`GET /api/orbit` loads the signed-in account’s active workspace. `POST /api/orbit` validates an action and executes an authenticated database transaction, returning updated data. Shared types describe the actions. Private responses use `no-store`; workspace membership is enforced in the database. Workspace activity stays within that workspace. Visible profile posts and followed-club activity use their own access rules. Task and expense deletion is limited to their creator; other workspace members can complete tasks.
 
 ## Current scope
 
 - Home feed posts, questions, marketplace posts, likes, and comments within your shared space.
-- A “Share on my profile” switch on each new or existing post. Signed-in students can open a profile and read its selected posts across workspaces. My profile’s Posts visibility switch hides the entire section. Historical posts start private; club posts never appear on a public profile.
-- Saved profile visibility for major, year, bio, and posts. Public profile pages exclude email, housing, photos, workspace details, comment bodies, and lists of people who liked a post.
-- Club discovery, creation, following, follower-only posts, and group chat. Following gives access immediately; there is no club approval workflow. Posts and chat are separate, with bounded history and retry-safe publishing.
+- One Posts visibility switch in My profile controls all Home feed posts, including older posts and attachments. Signed-in students can read, like, and comment on visible profile posts across workspaces. Club posts stay in their club.
+- Saved profile visibility for major, year, bio, and posts. Public profile pages exclude email, housing, private account photos, workspace details, and lists of people who liked a post. Comments show only their author’s name and avatar color.
+- Club discovery, creation, following, follower-only posts with likes and threaded comments, and separate group chat. My clubs opens first. Following gives access immediately; there is no club approval workflow. Posts and chat are separate, with bounded history and retry-safe publishing.
 - Club owners create club events. Followers see them in the club and in Events & plans alongside shared-space events.
 - Going / Not going choices. Not going reveals Remove, which hides the event for that account only. Removed events can be restored from the Removed tab.
 - Shared tasks, groceries, expense tracking, student profiles, workspace invite codes, campus resource links, and account onboarding.
 
-Apply all migrations in filename order, once each. Existing installations need [profile posts and club activity](supabase/migrations/20261023130935_profile_posts_and_club_activity.sql) before deploying this update. It also requires the preceding profile visibility and clubs migrations.
+Posts support up to four attachments, 5 MB each: JPG, PNG, WebP, GIF, PDF, Office documents, text, CSV, and ZIP. Uploads go directly to a private Storage bucket; the server verifies ownership and uploaded size/type before publishing. Download links are checked against current post access and expire after one minute. Unused uploads older than 24 hours are discarded on the next upload attempt. Published attachments cannot be replaced by their uploader.
 
-The demo uses fictional people and local state that resets when you leave. Live club posts and chat are available only while following; leaving a club removes its events from your plans. Event responses and personal removals persist if you follow again. Public profile posts show text and reaction counts; reactions and comments remain within the original shared space.
+Apply all migrations in filename order, once each. The latest required migration is [post engagement and attachments](supabase/migrations/20261023134812_post_engagement_and_attachments.sql). Existing installations also need [profile posts and club activity](supabase/migrations/20261023130935_profile_posts_and_club_activity.sql) before deploying this update. It also requires the preceding profile visibility and clubs migrations.
+
+The demo uses fictional people and local state that resets when you leave. Live club posts and chat are available only while following; leaving a club removes its events from your plans. Event responses and personal removals persist if you follow again. Public profile posts support likes and comments directly on the profile. Turning off profile visibility removes access for students outside the original shared space.
 
 Expense balances are tracking estimates; no money is transferred. Orbit is an independent student project without university systems integration. It does not send workspace invitations, direct messages, calendar invitations, or push notifications. Data refreshes after actions and periodically while visible; chat refreshes more frequently. This version uses one active workspace at a time and has no workspace switcher or invite-code rotation.
 

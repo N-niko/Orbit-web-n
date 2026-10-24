@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { attachmentSchema, postCommentSchema, postStatsSchema } from "./post-social";
 import { demoClubs } from "./discovery";
 
 export const clubCategories = ["Academic", "Arts & creativity", "Technology & learning", "Sports & wellness", "Culture & community", "Service", "Other"] as const;
@@ -9,17 +10,20 @@ export const createClubSchema = z.object({
 }).strict();
 export const followClubSchema = z.object({ following: z.boolean() }).strict();
 export const sendClubMessageSchema = z.object({ id: z.uuid(), body: z.string().trim().min(1).max(2000) }).strict();
-export const publishClubPostSchema = sendClubMessageSchema.extend({ body: z.string().trim().min(1).max(3000) });
+export const publishClubPostSchema = sendClubMessageSchema.extend({ body: z.string().trim().max(3000), attachmentIds: z.array(z.uuid()).max(4).default([]) }).refine(value=>Boolean(value.body || value.attachmentIds.length), "Write a post or attach a file.");
 export const clubSchema = createClubSchema.omit({ id: true }).extend({
   id: z.string(), createdBy: z.string(), createdAt: z.string(), followerCount: z.number().int().nonnegative(), following: z.boolean(),
 });
 export const clubListSchema = z.object({ clubs: z.array(clubSchema).max(100) });
 export const clubMessageSchema = z.object({ id: z.string(), body: z.string(), createdAt: z.string(), author: z.object({ id: z.string(), name: z.string(), color: z.string() }) });
 export const clubMessagesSchema = z.object({ messages: z.array(clubMessageSchema).max(50), hasMore: z.boolean() });
+export const clubPostsSchema = z.object({ messages: z.array(clubMessageSchema.extend(postStatsSchema.shape)).max(50), hasMore: z.boolean() });
+export type ClubPost = z.infer<typeof clubPostsSchema>["messages"][number];
+export type DemoClubPost = z.infer<typeof clubMessageSchema> & { likes: string[]; comments: z.infer<typeof postCommentSchema>[]; attachments: z.infer<typeof attachmentSchema>[] };
 export type Club = z.infer<typeof clubSchema>;
 export type ClubMessage = z.infer<typeof clubMessageSchema>;
 export type CreateClub = z.infer<typeof createClubSchema>;
-export type DemoClubs = { clubs: Club[]; messages: Record<string, ClubMessage[]>; posts: Record<string, ClubMessage[]> };
+export type DemoClubs = { clubs: Club[]; messages: Record<string, ClubMessage[]>; posts: Record<string, DemoClubPost[]> };
 
 export function createDemoClubs(): DemoClubs {
   return { clubs: demoClubs.map(club => ({ ...club, category: clubCategories.includes(club.category as typeof clubCategories[number]) ? club.category as typeof clubCategories[number] : "Other",

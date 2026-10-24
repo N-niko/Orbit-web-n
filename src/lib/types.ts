@@ -1,3 +1,5 @@
+import type { Attachment, PostResponse } from "./post-social";
+
 export type PostCategory = "general" | "question" | "marketplace";
 export type EventCategory = "Social" | "Academic" | "Clubs" | "Wellness";
 
@@ -34,7 +36,7 @@ export interface Post {
   createdAt: string;
   likes: string[];
   comments: Comment[];
-  sharedOnProfile?: boolean;
+  attachments?: Attachment[];
 }
 
 export interface Task {
@@ -89,8 +91,8 @@ export interface OrbitData {
 }
 
 export type OrbitAction =
-  | { type: "create_post"; body: string; category: PostCategory; shareOnProfile?: boolean }
-  | { type: "set_post_sharing"; id: string; shared: boolean }
+  | { type: "create_post"; id?: string; body: string; category: PostCategory; attachmentIds?: string[]; attachments?: Attachment[] }
+  | { type: "respond_post"; id: string; action: PostResponse }
   | { type: "toggle_like"; id: string }
   | { type: "add_comment"; id: string; body: string }
   | { type: "create_task"; title: string; assignee: string; dueDate: string; kind: "task" | "grocery" }

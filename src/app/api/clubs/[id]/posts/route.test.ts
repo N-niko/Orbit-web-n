@@ -27,7 +27,7 @@ describe("club post routes", () => {
   it("sends only a bounded body, the club, and an idempotency ID", async () => {
     const response = await POST(post({ id: messageId, body: " Hello " }), context());
     expect(response.status).toBe(200);
-    expect(mocks.rpc).toHaveBeenCalledWith("orbit_club_post", { p_club: id, p_id: messageId, p_body: "Hello" });
+    expect(mocks.rpc).toHaveBeenCalledWith("orbit_club_publish", { p_club: id, p_id: messageId, p_body: "Hello", p_files: [] });
     expect(response.headers.get("Cache-Control")).toContain("no-store");
   });
   it("accepts the post limit and rejects longer content", async () => {

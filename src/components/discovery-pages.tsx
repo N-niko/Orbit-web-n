@@ -8,6 +8,8 @@ import { MemberAvatar } from "./secondary-shared";
 import { EventArtwork } from "./events";
 import { EventResponseControls } from "./event-controls";
 import { eventGoingCount } from "@/lib/events";
+import { SocialPost } from "./social-post";
+import type { PostResponse, PostThread } from "@/lib/post-social";
 import { profilePageSchema } from "@/lib/profile-page";
 import "./discovery.css";
 
@@ -26,7 +28,7 @@ export function ProfileVisibilitySettings({ value, onChange, onPreview, demo }: 
     <p className="muted">Choose which details other students see. Your name and campus stay visible.</p>
     <div className="visibility-options">{fields.map(field => <label key={field}><span><strong>{visibilityLabels[field]}</strong><small>{value[field] ? "Visible on your profile" : "Hidden from other students"}</small></span><input type="checkbox" role="switch" checked={value[field]} disabled={pending} aria-label={`Show ${visibilityLabels[field].toLowerCase()} on my profile`} onChange={event => { void change(field, event.target.checked); }} /><i aria-hidden="true" /></label>)}</div>
     <p role="status" className="muted">{pending ? "Saving visibility…" : message}</p>{error && <p className="form-error" role="alert">{error}</p>}
-    <p className="visibility-demo-note">{demo ? "Demo changes reset when you leave." : "Changes save automatically. The Posts switch controls the Home feed posts you select to share on your profile."}</p>
+    <p className="visibility-demo-note">{demo ? "Demo changes reset when you leave." : "Changes save automatically. The Posts switch controls all your Home feed posts, including older posts and their attachments."}</p>
   </section>;
 }
 
@@ -35,7 +37,9 @@ function DetailLink({ title, detail, Icon, onClick }: { title: string; detail: s
   return <button className="discovery-link" onClick={onClick}><span className="discovery-link-icon"><Icon size={20} /></span><span><strong>{title}</strong><small>{detail}</small></span><ArrowUpRight size={16} /></button>;
 }
 
-export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, onAction, onPrivacy }: {
+export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, onAction, onPrivacy, respondDemo, onPostChanged }: {
+  onPostChanged:()=>void;
+  respondDemo: (id: string, action: PostResponse) => Promise<PostThread>;
   target: SearchTarget; directory: Directory; data: OrbitData; demo: boolean;
   onOpen: (target: SearchTarget) => void; onBack: () => void;
   onAction: (action: OrbitAction) => Promise<void>; onPrivacy: () => void;
@@ -45,7 +49,7 @@ export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, o
   const club = target.type === "club" ? directory.clubs.find(club => club.id === target.id) : undefined;
   const event = target.type === "event" ? data.events.find(event => event.id === target.id) : undefined;
   return <div className="secondary-view discovery-page"><button className="discovery-back" onClick={onBack}><ArrowLeft size={16} />Back to your Orbit</button>
-    {person ? <PersonPage key={person.profile.id} person={person} clubs={directory.clubs} onOpen={onOpen} own={person.profile.id === data.profile.id} demo={demo} onPrivacy={onPrivacy} /> :
+    {person ? <PersonPage onPostChanged={onPostChanged} respondDemo={respondDemo} key={person.profile.id} person={person} clubs={directory.clubs} onOpen={onOpen} own={person.profile.id === data.profile.id} demo={demo} onPrivacy={onPrivacy} /> :
       club ? <ClubPreview club={club} directory={directory} onOpen={onOpen} /> :
       event ? <EventDetail key={event.id} event={event} directory={directory} userId={data.profile.id} onAction={onAction} demo={demo} onOpen={onOpen} /> :
       <section className="panel empty-state"><h1 id="discovery-heading" tabIndex={-1}>This page is no longer available.</h1><p>Search again to find another person, club, or event.</p></section>}
@@ -88,7 +92,7 @@ function PersonPage(props: Parameters<typeof PublicPerson>[0]) {
   </>;
 }
 
-function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy }: { person: DirectoryPerson; clubs: DemoClub[]; onOpen: (target: SearchTarget) => void; own: boolean; demo: boolean; onPrivacy: () => void }) {
+function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy, respondDemo, onPostChanged }: { onPostChanged:()=>void; respondDemo: (id: string, action: PostResponse) => Promise<PostThread>; person: DirectoryPerson; clubs: DemoClub[]; onOpen: (target: SearchTarget) => void; own: boolean; demo: boolean; onPrivacy: () => void }) {
   const { profile, courses, clubIds, posts } = person;
   return <>
     <section className="panel public-profile-hero"><div className="public-profile-cover"><span>IN YOUR ORBIT</span><i>✳</i></div><div className="public-profile-intro"><MemberAvatar profile={profile} /><div><span className="discovery-pill">{own ? "Your profile · visitor preview" : "Student profile"}</span><h1 id="discovery-heading" tabIndex={-1}>{profile.name}</h1><p><GraduationCap size={16} />{profile.university}</p></div>{own && <button className="btn btn-secondary" onClick={onPrivacy}><ShieldCheck size={16} />Edit visibility</button>}</div></section>
@@ -98,7 +102,7 @@ function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy }: { person:
         {(profile.major || profile.year || profile.graduationYear) && <div className="public-facts">{profile.major && <div><span>MAJOR</span><strong>{profile.major}</strong></div>}{(profile.year || profile.graduationYear) && <div><span>YEAR</span><strong>{profile.graduationYear ? `Class of ${profile.graduationYear}` : profile.year}</strong></div>}</div>}
       </section>
       <section className="discovery-posts"><div className="discovery-section-heading"><h2>Posts</h2>{posts && <span className="discovery-muted-label">{posts.length} shared</span>}</div>
-        {posts === null ? <section className="panel discovery-section"><HiddenDetail label="Posts" /></section> : posts.length ? posts.map(post => <article className="panel public-post" key={post.id}><div className="public-post-author"><MemberAvatar profile={profile} /><div><strong>{profile.name}</strong><small>{new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {post.category === "marketplace" ? "Marketplace" : post.category === "question" ? "Question" : "Update"}</small></div></div><p>{post.body}</p><div className="public-post-stats"><span><Heart size={14} />{post.likeCount} likes</span><span><MessageCircle size={14} />{post.commentCount} comments</span></div></article>) : <section className="panel empty-state"><MessageCircle size={25} /><h3>No posts yet.</h3><p>A good conversation has to start somewhere.</p></section>}
+        {posts === null ? <section className="panel discovery-section"><HiddenDetail label="Posts" /></section> : posts.length ? posts.map(post => <SocialPost onChanged={onPostChanged} key={post.id} post={{ ...post, author: profile }} demoThread={demo ? post.thread : undefined} onDemoRespond={demo ? action => respondDemo(post.id, action) : undefined} />) : <section className="panel empty-state"><MessageCircle size={25} /><h3>No posts yet.</h3><p>A good conversation has to start somewhere.</p></section>}
       </section>
     </div><aside className="discovery-side">
       <section className="panel discovery-section"><div className="discovery-section-heading"><h2><Users size={18} />Clubs</h2></div>{clubIds === null ? <HiddenDetail label="Club memberships" /> : clubIds.length ? clubs.filter(club => clubIds.includes(club.id)).map(club => <DetailLink key={club.id} title={club.name} detail="Club · Demo preview" Icon={Users} onClick={() => onOpen({ type: "club", id: club.id })} />) : <p className="hidden-detail">No clubs shared yet.</p>}</section>
