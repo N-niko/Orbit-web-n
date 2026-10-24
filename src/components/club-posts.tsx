@@ -11,7 +11,7 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
 }) {
  const [posts,setPosts]=useState<ClubPost[]>([]);const [hasMore,setHasMore]=useState(false);const [ready,setReady]=useState(false);
  const [body,setBody]=useState("");const [files,setFiles]=useState<Attachment[]>([]);const [uploading,setUploading]=useState(false);const [busy,setBusy]=useState(false);const [olderBusy,setOlderBusy]=useState(false);const [error,setError]=useState("");const [retry,setRetry]=useState(0);
- const historyLoaded=useRef(false);
+ const historyLoaded=useRef(false);const postsRef=useRef(posts);postsRef.current=posts;
  const requestId=useRef<{key:string;id:string}|null>(null);const mounted=useRef(true);const lost=useRef(onMembershipLost);lost.current=onMembershipLost;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{
@@ -24,7 +24,9 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
     if(response.status===403){setPosts([]);lost.current();return;}
     const value=await response.json();if(!response.ok)throw new Error(value.error||"Club posts could not load.");
     const parsed=clubPostsSchema.parse(value);if(controller.signal.aborted)return;
-    setPosts(current=>{const overlap=!current.length||parsed.messages.some(post=>current.some(item=>item.id===post.id));return overlap?mergeClubMessages(current,parsed.messages) as ClubPost[]:parsed.messages;});
+    const overlap=!postsRef.current.length||parsed.messages.some(post=>postsRef.current.some(item=>item.id===post.id));
+    if(!overlap)historyLoaded.current=false;
+    setPosts(current=>overlap?mergeClubMessages(current,parsed.messages) as ClubPost[]:parsed.messages);
     if(!historyLoaded.current)setHasMore(parsed.hasMore);setReady(true);setError("");
    }catch(cause){if(!controller.signal.aborted){setReady(true);setError(cause instanceof Error?cause.message:"Club posts could not load.");}}
    finally{active=false;}
