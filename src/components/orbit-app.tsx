@@ -6,6 +6,8 @@ import { AttachmentPicker, clearDemoFilePreviews } from "./post-attachments";
 import { eventGoingCount } from "@/lib/events";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { sessionLoader } from "@/lib/session-load";
 import { ArrowDown, ArrowRight, ArrowUpRight, Bell, CalendarDays, Check, ChevronRight, CircleHelp, Compass, Copy, GraduationCap, Heart, Home, LogOut, Menu, MessageCircle, Moon, Orbit, Plus, Search, Send, Settings2, ShoppingBag, Sparkles, Sun, Users, X } from "lucide-react";
 import type { OrbitAction, OrbitData, Post, PostCategory } from "@/lib/types";
 import { applyDemoAction, createDemoData } from "@/lib/demo";
@@ -14,8 +16,8 @@ import { RoommatesView } from "./roommates";
 import { EventsView } from "./events";
 import { CampusView } from "./campus";
 import { ProfileView } from "./profile";
-import { ClubsView } from "./clubs";
-import { MarketplaceView } from "./marketplace";
+import "./clubs.css";
+import "./marketplace.css";
 import { createDemoMarket } from "@/lib/marketplace-demo";
 import { createDemoClubs } from "@/lib/clubs";
 import { MemberAvatar, ViewModal } from "./secondary-shared";
@@ -25,6 +27,13 @@ import { OrbitSearch } from "./orbit-search";
 import { DiscoveryPage, ProfileVisibilitySettings } from "./discovery-pages";
 import { buildDirectory, defaultVisibility, withDirectoryPeople, type ProfileVisibility, type SearchTarget } from "@/lib/discovery";
 import type { DirectoryProfile } from "@/lib/people-search";
+
+const ClubsView = dynamic(() => import("./clubs").then(module => module.ClubsView));
+const MarketplaceView = dynamic(() => import("./marketplace").then(module => module.MarketplaceView));
+function preloadView(view: string) {
+  if (view === "clubs") void import("./clubs").catch(() => {});
+  if (view === "marketplace") void import("./marketplace").catch(() => {});
+}
 
 type View = "home" | "roommates" | "events" | "campus" | "profile" | "clubs" | "marketplace";
 const navigation = [{ id: "home", label: "Home feed", icon: Home }, { id: "marketplace", label: "Marketplace", icon: ShoppingBag }, { id: "roommates", label: "Roommates", icon: Users }, { id: "events", label: "Events & plans", icon: CalendarDays }, { id: "campus", label: "Campus hub", icon: Compass }, { id: "clubs", label: "Clubs", icon: MessageCircle }] as const;
@@ -81,7 +90,10 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
     if (demo) return;
     let disposed = false;
     const client = getSupabaseBrowserClient();
-    async function load(signedIn: boolean) {
+    let authRevision = 0;
+    const initialRevision = authRevision;
+    const load = sessionLoader(async (userId: string | null) => {
+      const signedIn = userId !== null;
       const current = ++generation.current;
       if (disposed) return;
       setSignedIn(signedIn); setSessionReady(true); setError("");
@@ -89,14 +101,18 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
       replaceData(null);
       try { const next = await getOnlineData(); if (!disposed && current === generation.current) replaceData(next); }
       catch (cause) { if (!disposed && current === generation.current) setError(cause instanceof Error ? cause.message : "Unable to load your Orbit."); }
-    }
+    });
     if (new URLSearchParams(window.location.search).get("recovery") === "1") { setRecovery(true); window.history.replaceState({}, "", "/"); }
     if (new URLSearchParams(window.location.search).has("authError")) { setToast("That sign-in link is invalid or expired. Please request a new link."); window.history.replaceState({}, "", "/"); }
-    if (!client) { void load(false); return () => { disposed = true; }; }
-    void client.auth.getSession().then(({ data, error }) => { if (error) throw error; if (!disposed) void load(Boolean(data.session)); }).catch(cause => { if (!disposed) setError(cause instanceof Error ? cause.message : "Unable to load your session. Please try again."); });
+    if (!client) { void load(null); return () => { disposed = true; }; }
+    void client.auth.getSession().then(({ data, error }) => { if (error) throw error; if (!disposed && initialRevision === authRevision) void load(data.session?.user.id ?? null); }).catch(cause => { if (!disposed && initialRevision === authRevision) setError(cause instanceof Error ? cause.message : "Unable to load your session. Please try again."); });
     const { data: subscription } = client.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") { setRecovery(true); }
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") window.setTimeout(() => { if (!disposed) void load(Boolean(session)); }, 0);
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        authRevision += 1;
+        const revision = authRevision;
+        window.setTimeout(() => { if (!disposed && revision === authRevision) void load(session?.user.id ?? null); }, 0);
+      }
     });
     const poll = window.setInterval(() => { if (!disposed && dataRef.current && !pending.current && document.visibilityState === "visible") { const current = generation.current; const version = mutationVersion.current; void getOnlineData().then(next => { if (!disposed && current === generation.current && version === mutationVersion.current && !pending.current) replaceData(next); }).catch(() => {}); } }, 30000);
     return () => { disposed = true; subscription.subscription.unsubscribe(); clearInterval(poll); };
@@ -158,7 +174,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
       <button className="brand" onClick={() => navigate("home")} aria-label="Orbit home"><span className="logo-mark"><Orbit size={29} strokeWidth={1.6} /></span><span>orbit<span className="brand-dot">.</span></span></button>
       <div className="campus-label"><span className="campus-icon"><GraduationCap size={19} /></span><div><strong>Caldwell University</strong><span>Your campus community</span></div><span className="campus-online" /></div>
       <p className="nav-heading">YOUR EVERYDAY ORBIT</p>
-      <nav aria-label="Main navigation">{navigation.map(item => <button key={item.id} className={`nav-link${view === item.id ? " active" : ""}`} onClick={() => navigate(item.id)} aria-current={view === item.id ? "page" : undefined}><item.icon size={20} strokeWidth={1.8} /><span>{item.label}</span>{item.id === "home" && <span className="nav-dot" />}{item.id === "events" && upcoming.length > 0 && <span className="nav-count">{upcoming.length}</span>}</button>)}</nav>
+      <nav aria-label="Main navigation">{navigation.map(item => <button key={item.id} className={`nav-link${view === item.id ? " active" : ""}`} onMouseEnter={() => preloadView(item.id)} onFocus={() => preloadView(item.id)} onClick={() => navigate(item.id)} aria-current={view === item.id ? "page" : undefined}><item.icon size={20} strokeWidth={1.8} /><span>{item.label}</span>{item.id === "home" && <span className="nav-dot" />}{item.id === "events" && upcoming.length > 0 && <span className="nav-count">{upcoming.length}</span>}</button>)}</nav>
       <div className="nav-rule" /><p className="nav-heading">MAKE IT YOURS</p>
       <button className={`nav-link${view === "profile" ? " active" : ""}`} onClick={() => navigate("profile")}><Settings2 size={19} /><span>My profile</span></button>
       <button className="nav-link mobile-theme-control" onClick={() => setDark(!dark)}>{dark ? <Sun size={19} /> : <Moon size={19} />}<span>{dark ? "Light appearance" : "Dark appearance"}</span></button>

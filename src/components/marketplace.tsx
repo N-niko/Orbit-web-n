@@ -51,7 +51,11 @@ export function MarketplaceView({ profile, demo, demoData, onDemoChange, selecte
  const read = useCallback((action: MarketAction, signal?: AbortSignal) => demo ? Promise.resolve(applyDemoMarket(demoRef.current, action, profile).result) : onlineMarket(action, signal), [demo, profile]);
  useEffect(() => {
   const controller = new AbortController(); setError("");
-  void read({ type: "identity" }, controller.signal).then(value => { if (!controller.signal.aborted) setIdentity(marketIdentitySchema.parse(value)); }).catch(cause => { if (!controller.signal.aborted) { setError(actionError(cause)); setLoading(false); } });
+  void read({ type: "identity" }, controller.signal).then(value => {
+   if (controller.signal.aborted) return;
+   const next = marketIdentitySchema.parse(value);
+   setIdentity(current => current?.eligible === next.eligible && current.university === next.university && current.domain === next.domain ? current : next);
+  }).catch(cause => { if (!controller.signal.aborted) { setError(actionError(cause)); setLoading(false); } });
   return () => controller.abort();
  }, [read, retry]);
  useEffect(() => {
@@ -64,13 +68,13 @@ export function MarketplaceView({ profile, demo, demoData, onDemoChange, selecte
    }).catch(cause => { if (!controller.signal.aborted) { setError(actionError(cause)); setLoading(false); } });
   }, 180);
   return () => { clearTimeout(timer); controller.abort(); };
- }, [read, identity, filters, tab, selectedId, retry, demoData]);
+ }, [read, identity?.eligible, filters, tab, selectedId, retry, demoData]);
  useEffect(() => {
   if (!selectedId || !identity?.eligible) { setSelected(null); return; }
   const controller = new AbortController(); setSelected(null); setLoading(true); setError("");
   void read({ type: "detail", id: selectedId }, controller.signal).then(value => { if (!controller.signal.aborted) { setSelected(marketListingSchema.parse(value)); setLoading(false); } }).catch(cause => { if (!controller.signal.aborted) { setError(actionError(cause)); setLoading(false); } });
   return () => controller.abort();
- }, [selectedId, identity, read, retry]);
+ }, [selectedId, identity?.eligible, read, retry]);
  useEffect(() => {
   if (createRequested && identity) { if (identity.eligible) setForm({ kind: "sale" }); onCreateHandled(); }
  }, [createRequested, identity, onCreateHandled]);
