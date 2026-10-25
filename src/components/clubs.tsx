@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type FormE
 import { ArrowLeft, ArrowUpRight, Check, Compass, LockKeyhole, MapPin, MessageCircle, Plus, Search, Send, Users } from "lucide-react";
 import type { CampusEvent, OrbitAction, Profile } from "@/lib/types";
 import { clubCategories, clubColors, clubListSchema, clubMessagesSchema, clubSchema, createClubSchema, filterClubs, mergeClubMessages, setDemoFollow, type Club, type ClubMessage, type DemoClubs } from "@/lib/clubs";
+import type { SocialPerson } from "@/lib/post-social";
 import { ClubPosts } from "./club-posts";
 import { CreateEventDialog, EventCard } from "./events";
 import { MemberAvatar, ViewModal } from "./secondary-shared";
@@ -20,7 +21,8 @@ async function clubRequest(path: string, options?: RequestInit) {
 const jsonPost = (value: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) });
 const message = (error: unknown) => error instanceof Error ? error.message : "Something went wrong. Please try again.";
 
-export function ClubsView({ profile, demo, demoData, onDemoChange, selectedId, onSelect, events, onAction, onOpenEvent, onRefresh }: {
+export function ClubsView({ profile, demo, demoData, onDemoChange, selectedId, onSelect, events, onAction, onOpenEvent, onRefresh, onOpenProfile, people }: {
+  onOpenProfile:(person:SocialPerson)=>void; people:SocialPerson[];
   profile: Profile; demo: boolean; demoData: DemoClubs; onDemoChange: Dispatch<SetStateAction<DemoClubs>>;
   selectedId: string | null; onSelect: (id: string | null) => void;
   events: CampusEvent[]; onAction: (action: OrbitAction) => Promise<void>; onOpenEvent: (id: string) => void; onRefresh: () => Promise<void>;
@@ -98,7 +100,7 @@ export function ClubsView({ profile, demo, demoData, onDemoChange, selectedId, o
         <div className="club-detail-grid"><aside className="panel club-about"><span className="club-section-eyebrow">A PLACE TO CONNECT</span><h2>Get together.</h2><p><MapPin size={18} />{selected.meeting || "Meeting details haven’t been added yet."}</p><div className="club-about-note"><MessageCircle size={20} /><strong>Your people, one conversation away.</strong><p>Follow this club to read and share posts, chat with the group, and keep up with its events.</p></div></aside>
           {selected.following ? <div className="club-activity">
             <div className="club-tabs club-activity-tabs" aria-label="Club activity">{(["posts", "chat", "events"] as const).map(item => <button type="button" key={item} aria-pressed={activity === item} onClick={() => setActivity(item)}>{item === "posts" ? "Posts" : item === "chat" ? "Chat" : "Events"}</button>)}</div>
-            {activity === "posts" ? <ClubPosts onRefresh={onRefresh} key={selected.id} club={selected} profile={profile} demo={demo} demoData={demoData} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> : activity === "chat" ? <ClubStream key={selected.id} club={selected} profile={profile} demo={demo} demoMessages={demoData.messages[selected.id] ?? []} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> :
+            {activity === "posts" ? <ClubPosts onOpenProfile={onOpenProfile} people={people} onRefresh={onRefresh} key={selected.id} club={selected} profile={profile} demo={demo} demoData={demoData} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> : activity === "chat" ? <ClubStream key={selected.id} club={selected} profile={profile} demo={demo} demoMessages={demoData.messages[selected.id] ?? []} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> :
               <section className="club-events"><div className="club-events-heading"><div><h2>Club plans</h2><p className="muted">Also in your Events & plans.</p></div>{selected.createdBy === profile.id && <button className="btn btn-primary" onClick={() => setEventCreate(true)}><Plus size={16} />Create club event</button>}</div>
                 {events.filter(event => event.clubId === selected.id).sort((a,b) => Date.parse(a.startsAt)-Date.parse(b.startsAt)).map(event => <EventCard key={event.id} event={event} userId={profile.id} onAction={onAction} onOpenEvent={onOpenEvent} />)}
                 {!events.some(event => event.clubId === selected.id) && <div className="panel empty-state"><h3>No club plans yet.</h3><p>{selected.createdBy === profile.id ? "Create the first event for your followers." : "The club owner can share an event here."}</p></div>}

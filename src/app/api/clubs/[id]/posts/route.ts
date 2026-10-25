@@ -2,6 +2,7 @@ import { z } from "zod";
 import { clubPostsSchema, publishClubPostSchema } from "@/lib/clubs";
 import { clubBody, clubClient, clubIdSchema, clubResult, type ClubContext } from "@/lib/server/clubs";
 import { privateJson } from "@/lib/server/responses";
+import { socialAvatars } from "@/lib/server/social-avatars";
 
 export async function GET(request: Request, context: ClubContext) {
   const auth = await clubClient();
@@ -10,7 +11,7 @@ export async function GET(request: Request, context: ClubContext) {
   const before = z.uuid().nullable().safeParse(new URL(request.url).searchParams.get("before"));
   if (!id.success || !before.success) return privateJson({ error: "Invalid post request." }, 400);
   const { data, error } = await auth.client.rpc("orbit_club_posts", { p_club: id.data, p_before: before.data });
-  return clubResult(data, error, clubPostsSchema);
+  return clubResult(error?data:await socialAvatars(auth.client,data), error, clubPostsSchema);
 }
 
 export async function POST(request: Request, context: ClubContext) {

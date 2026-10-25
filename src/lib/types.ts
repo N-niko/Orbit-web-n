@@ -26,6 +26,12 @@ export interface Comment {
   author: Profile;
   body: string;
   createdAt: string;
+  parentId?: string | null;
+  replyToId?: string | null;
+  replyToName?: string | null;
+  likes?: string[];
+  likeCount?: number;
+  liked?: boolean;
 }
 
 export interface Post {

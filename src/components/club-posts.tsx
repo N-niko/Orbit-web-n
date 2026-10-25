@@ -3,10 +3,11 @@ import { useEffect, useRef, useState, type Dispatch, type FormEvent, type SetSta
 import { Plus } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { clubPostsSchema, mergeClubMessages, type Club, type ClubPost, type DemoClubPost, type DemoClubs } from "@/lib/clubs";
-import { applyPostResponse, postJson, postRequest, threadFromPost, type Attachment, type PostResponse } from "@/lib/post-social";
+import { applyPostResponse, postJson, postRequest, threadFromPost, type Attachment, type PostResponse, type SocialPerson } from "@/lib/post-social";
 import { AttachmentPicker } from "./post-attachments";
 import { SocialPost } from "./social-post";
-export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipLost,onRefresh}: {
+export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipLost,onRefresh,onOpenProfile,people}: {
+ onOpenProfile:(person:SocialPerson)=>void; people:SocialPerson[];
  club:Club;profile:Profile;demo:boolean;demoData:DemoClubs;onDemoChange:Dispatch<SetStateAction<DemoClubs>>;onMembershipLost:()=>void;onRefresh:()=>Promise<void>;
 }) {
  const [posts,setPosts]=useState<ClubPost[]>([]);const [hasMore,setHasMore]=useState(false);const [ready,setReady]=useState(false);
@@ -34,7 +35,7 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
   void refresh();const poll=window.setInterval(()=>{if(document.visibilityState==="visible")void refresh();},15000);
   return()=>{controller.abort();clearInterval(poll);};
  },[club.id,demo,retry]);
- const shown=demo?(demoData.posts[club.id]??[]).map(post=>({...post,...threadFromPost(post,profile.id)})):posts;
+ const shown=demo?(demoData.posts[club.id]??[]).map(post=>({...post,...threadFromPost(post,profile.id,people)})):posts;
  async function older(){
   if(!posts.length)return;setOlderBusy(true);
   try{const parsed=clubPostsSchema.parse(await postRequest(`/api/clubs/${club.id}/posts?before=${posts[0].id}`));if(mounted.current){setPosts(current=>mergeClubMessages(current,parsed.messages) as ClubPost[]);historyLoaded.current=true;setHasMore(parsed.hasMore);}}
@@ -54,14 +55,14 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
   const post=demoData.posts[club.id]?.find(post=>post.id===id);if(!post)throw new Error("Post not found.");
   const next=applyPostResponse(post,profile,action);
   onDemoChange(current=>({...current,posts:{...current.posts,[club.id]:(current.posts[club.id]??[]).map(item=>item.id===id?applyPostResponse(item,profile,action):item)}}));
-  return threadFromPost(next,profile.id);
+  return threadFromPost(next,profile.id,people);
  }
  return <section className="club-posts" aria-label={`${club.name} posts`}>
   <form className="panel club-post-composer" onSubmit={event=>{void publish(event);}}><div className="club-posts-heading"><h2>Club posts</h2><small>For followers</small></div><label className="sr-only" htmlFor={`club-post-${club.id}`}>Post to {club.name}</label><textarea id={`club-post-${club.id}`} placeholder="Share an update with your club…" maxLength={3000} rows={3} value={body} disabled={busy} onChange={event=>setBody(event.target.value)}/>
    <AttachmentPicker files={files} onChange={setFiles} demo={demo} disabled={busy} onBusy={setUploading}/><div className="club-post-composer-actions"><small>{body.length}/3000</small><button type="submit" className="btn btn-primary" disabled={busy||uploading||!ready||(!body.trim()&&!files.length)}><Plus size={15}/>{busy?"Publishing…":"Publish post"}</button></div>
   </form>
   {error&&<div className="panel social-post-error" role="alert"><p>{error}</p><button className="text-button" onClick={()=>setRetry(value=>value+1)}>Try again</button></div>}
-  {!ready?<p className="muted" role="status">Loading club posts…</p>:!shown.length&&!error?<section className="panel empty-state"><h3>Start the first post.</h3><p>Share an update, a question, or something worth passing along.</p></section>:[...shown].reverse().map(post=><SocialPost onChanged={()=>{void onRefresh().catch(()=>{});}} key={post.id} post={post} club demoThread={demo?threadFromPost(demoData.posts[club.id].find(item=>item.id===post.id)!,profile.id):undefined} onDemoRespond={demo?action=>respondDemo(post.id,action):undefined}/>)}
+  {!ready?<p className="muted" role="status">Loading club posts…</p>:!shown.length&&!error?<section className="panel empty-state"><h3>Start the first post.</h3><p>Share an update, a question, or something worth passing along.</p></section>:[...shown].reverse().map(post=><SocialPost onOpenProfile={onOpenProfile} onChanged={()=>{void onRefresh().catch(()=>{});}} key={post.id} post={post} club demoThread={demo?threadFromPost(demoData.posts[club.id].find(item=>item.id===post.id)!,profile.id,people):undefined} onDemoRespond={demo?action=>respondDemo(post.id,action):undefined}/>)}
   {!demo&&hasMore&&<button className="btn btn-secondary" disabled={olderBusy} onClick={()=>{void older();}}>{olderBusy?"Loading…":"Load earlier posts"}</button>}
  </section>;
 }

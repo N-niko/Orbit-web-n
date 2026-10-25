@@ -46,7 +46,7 @@ export function ViewModal({ title, description, onClose, children, busy = false 
 
 export function MemberAvatar({ profile, small = false }: { profile: Profile; small?: boolean }) {
   const [failedUrl, setFailedUrl] = useState<string | undefined>();
-  return <span className={`avatar secondary-avatar${small ? " secondary-avatar-small" : ""}`} style={{ backgroundColor: profile.color || "#e9e3ff" }} title={profile.name} aria-label={profile.name}>
+  return <span className={`avatar secondary-avatar${small ? " secondary-avatar-small" : ""}`} style={{ backgroundColor: profile.color || "#e9e3ff", aspectRatio: "1 / 1", borderRadius: "50%", flexShrink: 0, overflow: "hidden" }} title={profile.name} aria-label={profile.name}>
     {profile.avatarUrl && profile.avatarUrl !== failedUrl ? <img src={profile.avatarUrl} alt="" onError={() => setFailedUrl(profile.avatarUrl)} /> : profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
   </span>;
 }

@@ -16,7 +16,7 @@ export function PostAttachments({ files }: { files: Attachment[] }) {
   const image=file.mime.startsWith("image/");
   return <div key={file.id} className={`post-file${image ? " post-photo" : ""}`}>
    {image && (failures.includes(file.id) ? <div className="post-photo-failed"><span>Photo could not load.</span><button className="text-button" onClick={()=>{setFailures(current=>current.filter(id=>id!==file.id));setAttempt(value=>value+1);}}><RotateCcw size={13}/>Try again</button></div> : <a href={path} target="_blank" rel="noopener noreferrer" aria-label={`Open photo ${file.name}`}><img loading="lazy" src={path+(file.previewUrl ? "" : `?view=${attempt}`)} alt={file.name} onError={()=>setFailures(current=>[...current,file.id])}/></a>)}
-   <a className="post-file-link" href={file.previewUrl || `${path}?download=1`} download={file.name} target="_blank" rel="noopener noreferrer">{image ? <Download size={16}/> : <FileText size={20}/>}<span><strong>{file.name}</strong><small>{formatFileSize(file.size)}</small></span><Download size={14}/></a>
+   {!image&&<a className="post-file-link" href={file.previewUrl || `${path}?download=1`} download={file.name} target="_blank" rel="noopener noreferrer"><FileText size={20}/><span><strong>{file.name}</strong><small>{formatFileSize(file.size)}</small></span><Download size={14}/></a>}
   </div>;
  })}</div>;
 }

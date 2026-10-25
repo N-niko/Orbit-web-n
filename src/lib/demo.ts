@@ -1,3 +1,4 @@
+import { applyPostResponse } from "./post-social";
 import type { OrbitAction, OrbitData, Profile } from "./types";
 
 /** All people, conversations, and activity in the demo are fictional. */
@@ -89,13 +90,8 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
       return { ...data, posts: [{ id: action.id ?? nextId("post", data.posts.map(post=>post.id)), author: data.profile, body: action.body.trim(), category: action.category, createdAt, likes: [], comments: [], attachments: action.attachments ?? [] }, ...data.posts] };
     }
     case "respond_post": {
-      const response=action.action;
-      return { ...data, posts: data.posts.map(post=>{
-        if(post.id!==action.id)return post;
-        if(response.type==="like")return {...post,likes:response.liked?[...new Set([...post.likes,id])]:post.likes.filter(user=>user!==id)};
-        if(post.comments.some(comment=>comment.id===response.id))return post;
-        return {...post,comments:[...post.comments,{id:response.id,author:data.profile,body:required(response.body,"Comment",1000),createdAt}]};
-      }) };
+      const response=action.action.type==="comment"?{...action.action,body:required(action.action.body,"Comment",1000)}:action.action;
+      return {...data,posts:data.posts.map(post=>post.id===action.id?applyPostResponse(post,data.profile,response):post)};
     }
     case "toggle_like":
       return { ...data, posts: data.posts.map((post) => post.id === action.id ? { ...post, likes: post.likes.includes(id) ? post.likes.filter((like) => like !== id) : [...post.likes, id] } : post) };

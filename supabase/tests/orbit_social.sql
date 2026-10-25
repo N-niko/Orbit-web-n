@@ -40,7 +40,7 @@ select public.orbit_post_respond('70000000-0000-4000-8000-000000000021',false,'{
 do $$ declare v jsonb; begin
  v:=public.orbit_post_thread('70000000-0000-4000-8000-000000000021');
  if v->>'likeCount'<>'1' or not (v->>'liked')::boolean or v->>'commentCount'<>'1' or jsonb_array_length(v->'comments')<>1 then raise exception 'Profile responses not idempotent'; end if;
- if v->'comments'->0->'author'->>'id'<>auth.uid()::text or (select count(*) from jsonb_object_keys(v->'comments'->0->'author'))<>3 then raise exception 'Comment identity or private projection failed'; end if;
+ if v->'comments'->0->'author'->>'id'<>auth.uid()::text or exists(select 1 from jsonb_object_keys(v->'comments'->0->'author') k where k not in('id','name','color','university','avatarPath')) then raise exception 'Comment identity or private projection failed'; end if;
  begin perform public.orbit_post_respond('70000000-0000-4000-8000-000000000021',false,jsonb_build_object('type','comment','id',gen_random_uuid(),'body',repeat('x',1001)));
   raise exception 'Oversized comment accepted'; exception when invalid_parameter_value then null; end;
  begin insert into public.orbit_comments(post_id,author_id,body) values('70000000-0000-4000-8000-000000000021',auth.uid(),'Direct forged response');

@@ -53,7 +53,7 @@ export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = d
       courses: details && visibility.courses ? details.courses : null,
       clubIds: details && visibility.clubs ? details.clubIds : null,
       posts: visibility.posts ? data.posts.filter(post => post.author.id === profile.id).map(post => ({ id: post.id, body: post.body,
-        category: post.category, createdAt: post.createdAt, likeCount: post.likes.length, liked: post.likes.includes(data.profile.id), commentCount: post.comments.length, attachments: post.attachments ?? [], ...(demo ? { thread: threadFromPost(post, data.profile.id) } : {}) })) : null,
+        category: post.category, createdAt: post.createdAt, likeCount: post.likes.length, liked: post.likes.includes(data.profile.id), commentCount: post.comments.length, attachments: post.attachments ?? [], ...(demo ? { thread: threadFromPost(post, data.profile.id, data.workspace.members) } : {}) })) : null,
     };
   });
   return { people, clubs, events: data.events.filter(event => !event.removed) };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { attachmentSchema, postCommentSchema, postStatsSchema } from "./post-social";
+import { attachmentSchema, postAuthorSchema, postCommentSchema, postStatsSchema } from "./post-social";
 import { demoClubs } from "./discovery";
 
 export const clubCategories = ["Academic", "Arts & creativity", "Technology & learning", "Sports & wellness", "Culture & community", "Service", "Other"] as const;
@@ -15,7 +15,7 @@ export const clubSchema = createClubSchema.omit({ id: true }).extend({
   id: z.string(), createdBy: z.string(), createdAt: z.string(), followerCount: z.number().int().nonnegative(), following: z.boolean(),
 });
 export const clubListSchema = z.object({ clubs: z.array(clubSchema).max(100) });
-export const clubMessageSchema = z.object({ id: z.string(), body: z.string(), createdAt: z.string(), author: z.object({ id: z.string(), name: z.string(), color: z.string() }) });
+export const clubMessageSchema = z.object({ id: z.string(), body: z.string(), createdAt: z.string(), author: postAuthorSchema });
 export const clubMessagesSchema = z.object({ messages: z.array(clubMessageSchema).max(50), hasMore: z.boolean() });
 export const clubPostsSchema = z.object({ messages: z.array(clubMessageSchema.extend(postStatsSchema.shape)).max(50), hasMore: z.boolean() });
 export type ClubPost = z.infer<typeof clubPostsSchema>["messages"][number];
