@@ -1,4 +1,5 @@
 "use client";
+import { OrbitSelect } from "./orbit-select";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, BusFront, Camera, Check, Home, LogOut, Upload, X } from "lucide-react";
@@ -90,7 +91,7 @@ export function Onboarding({ profile, onSaved, onSignOut }: { profile: Profile; 
     <form className="account-form" onSubmit={submit}><fieldset disabled={busy || !ready}>
       {step === 2 ? <>
         <div className="residency-options">{([{ value: "commuter", title: "I’m a commuter", detail: "Campus life, on my schedule.", Icon: BusFront }, { value: "resident", title: "I’m a resident", detail: "Making campus feel like home.", Icon: Home }] as const).map(({ value, title, detail, Icon }) => <label key={value} className={`residency-option ${residency === value ? "selected" : ""}`}><input type="radio" name="residency" value={value} checked={residency === value} required onChange={() => { setResidency(value); if (value === "commuter") setHall(""); }} /><Icon size={26} strokeWidth={1.5} /><strong>{title}</strong><span>{detail}</span><i aria-hidden="true">{residency === value && <Check size={12} />}</i></label>)}</div>
-        {residency === "resident" && <label className="field">Residence hall<select required value={hall} onChange={event => setHall(event.target.value)}><option value="">Choose your residence hall</option>{RESIDENCE_HALLS.map(value => <option key={value}>{value}</option>)}</select><small className="account-hint">This helps personalize your campus experience. Roommate spaces still require an invite.</small></label>}
+        {residency === "resident" && <label className="field">Residence hall<OrbitSelect aria-label="Residence hall" required value={hall} onChange={event => setHall(event.target.value)}><option value="">Choose your residence hall</option>{RESIDENCE_HALLS.map(value => <option key={value}>{value}</option>)}</OrbitSelect><small className="account-hint">This helps personalize your campus experience. Roommate spaces still require an invite.</small></label>}
         {needsStudentDetails && <div className="account-form-grid"><label className="field">Major<input required maxLength={100} value={major} onChange={event => setMajor(event.target.value)} placeholder="Your major, or Undecided" /></label><label className="field">Graduation year<input type="number" required min={2000} max={2100} value={year} onChange={event => setYear(event.target.value)} placeholder="e.g. 2030" /></label></div>}
         <div className="account-note"><Home size={19} /><p>{residency === "resident" ? "Roommates, shared tasks, and splitting everyday costs—start with your own shared space." : "Your campus community, events, and conversations come with you."}</p></div>
       </> : <>

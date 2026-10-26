@@ -1,4 +1,5 @@
 "use client";
+import { OrbitSelect } from "./orbit-select";
 
 import { useState, type FormEvent } from "react";
 import { ArrowUpRight, Check, CheckCheck, CheckSquare2, ClipboardList, Copy, Home, Plus, Receipt, ShoppingBasket, Trash2, Users, Wallet } from "lucide-react";
@@ -103,7 +104,7 @@ export function RoommatesView({ data, onAction, search = "" }: ViewProps) {
         {modal === "space" ? <label className="field">{spaceMode === "join" ? "Invite code" : "Space name"}<input name="space" required minLength={spaceMode === "join" ? 12 : 2} maxLength={spaceMode === "join" ? 12 : 60} placeholder={spaceMode === "join" ? "Your 12-character invite code" : "e.g. The Willow House"} autoCapitalize={spaceMode === "join" ? "characters" : "sentences"} autoComplete="off" /></label> : <>
           <label className="field">{modal === "expense" ? "What was it for?" : modal === "grocery" ? "What do you need?" : "Task name"}<input name="title" required maxLength={160} placeholder={modal === "expense" ? "e.g. The weekly grocery run" : modal === "grocery" ? "e.g. Oat milk and coffee" : "e.g. Give the kitchen some love"} /></label>
           <div className="form-grid">{modal === "expense" ? <label className="field">Amount (USD)<input name="amount" type="number" required min="0.01" step="0.01" max="100000" placeholder="0.00" /></label> : <label className="field">Due date<input name="dueDate" type="date" required defaultValue={todayString} /></label>}
-            <label className="field">{modal === "expense" ? "Paid by" : "Assigned to"}<select name={modal === "expense" ? "paidBy" : "assignee"} defaultValue={profile.id}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}{member.id === profile.id ? " (you)" : ""}</option>)}</select></label></div>
+            <label className="field">{modal === "expense" ? "Paid by" : "Assigned to"}<OrbitSelect aria-label={modal === "expense" ? "Paid by" : "Assigned to"} name={modal === "expense" ? "paidBy" : "assignee"} defaultValue={profile.id}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}{member.id === profile.id ? " (you)" : ""}</option>)}</OrbitSelect></label></div>
         </>}
         <ActionError error={error} /><div className="secondary-form-actions"><button className="btn btn-secondary" type="button" disabled={Boolean(pending)} onClick={() => setModal(null)}>Cancel</button><button className="btn btn-primary" type="submit" disabled={Boolean(pending)}>{pending ? "Saving…" : modal === "space" ? spaceMode === "join" ? "Join space" : "Create space" : modal === "expense" ? "Add expense" : modal === "grocery" ? "Add item" : "Add task"}</button></div>
       </form>
