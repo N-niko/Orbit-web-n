@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { ArrowLeft, ArrowUpRight, Check, Compass, LockKeyhole, MapPin, MessageCircle, Plus, Search, Send, Users } from "lucide-react";
+import { sortEvents } from "@/lib/events";
 import type { CampusEvent, OrbitAction, Profile } from "@/lib/types";
 import { clubCategories, clubColors, clubListSchema, clubMessagesSchema, clubSchema, createClubSchema, filterClubs, mergeClubMessages, setDemoFollow, type Club, type ClubMessage, type DemoClubs } from "@/lib/clubs";
 import type { SocialPerson } from "@/lib/post-social";
@@ -102,7 +103,7 @@ export function ClubsView({ profile, demo, demoData, onDemoChange, selectedId, o
             <div className="club-tabs club-activity-tabs" aria-label="Club activity">{(["posts", "chat", "events"] as const).map(item => <button type="button" key={item} aria-pressed={activity === item} onClick={() => setActivity(item)}>{item === "posts" ? "Posts" : item === "chat" ? "Chat" : "Events"}</button>)}</div>
             {activity === "posts" ? <ClubPosts onOpenProfile={onOpenProfile} people={people} onRefresh={onRefresh} key={selected.id} club={selected} profile={profile} demo={demo} demoData={demoData} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> : activity === "chat" ? <ClubStream key={selected.id} club={selected} profile={profile} demo={demo} demoMessages={demoData.messages[selected.id] ?? []} onDemoChange={onDemoChange} onMembershipLost={membershipLost} /> :
               <section className="club-events"><div className="club-events-heading"><div><h2>Club plans</h2><p className="muted">Also in your Events & plans.</p></div>{selected.createdBy === profile.id && <button className="btn btn-primary" onClick={() => setEventCreate(true)}><Plus size={16} />Create club event</button>}</div>
-                {events.filter(event => event.clubId === selected.id).sort((a,b) => Date.parse(a.startsAt)-Date.parse(b.startsAt)).map(event => <EventCard key={event.id} event={event} userId={profile.id} onAction={onAction} onOpenEvent={onOpenEvent} />)}
+                {sortEvents(events.filter(event => event.clubId === selected.id)).map(event => <EventCard key={event.id} event={event} userId={profile.id} onAction={onAction} onOpenEvent={onOpenEvent} onOpenClub={onSelect} />)}
                 {!events.some(event => event.clubId === selected.id) && <div className="panel empty-state"><h3>No club plans yet.</h3><p>{selected.createdBy === profile.id ? "Create the first event for your followers." : "The club owner can share an event here."}</p></div>}
               </section>}
           </div> : <section className="panel club-chat-locked"><span><LockKeyhole size={28} /></span><h2>Your club, a little closer.</h2><p>Follow {selected.name} to read and share posts, open the chat, and see club events.</p><button type="button" className="btn btn-primary" disabled={busy} onClick={() => { void follow(selected); }}><Plus size={16} />Follow to join in</button></section>}

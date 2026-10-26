@@ -10,6 +10,7 @@ export async function socialAvatars(client:SupabaseClient,value:unknown) {
  for(const key of ["comments","parents","messages"])if(Array.isArray(data[key]))for(const item of data[key])add(item?.author);
  if(data.updatedComment&&typeof data.updatedComment==="object")add((data.updatedComment as Record<string,unknown>).author);
  if(Array.isArray(data.users))data.users.forEach(add);
+ if(Array.isArray(data.items))for(const item of data.items)add(item?.post?.author);
  const paths=[...new Set(people.map(p=>p.avatarPath).filter((p):p is string=>typeof p==="string"&&Boolean(p)))];
  const urls=paths.length?(await client.storage.from(AVATAR_BUCKET).createSignedUrls(paths,3600)).data:null;
  const signed=new Map(urls?.filter(p=>p.path&&p.signedUrl).map(p=>[p.path!,p.signedUrl]));

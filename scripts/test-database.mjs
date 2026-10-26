@@ -29,7 +29,7 @@ try {
   `);
   const migrations = new URL("../supabase/migrations/", import.meta.url);
   for (const name of (await readdir(migrations)).filter(name => name.endsWith(".sql")).sort()) {
-    await db.exec(await readFile(new URL(name, migrations), "utf8"));
+    if(name!=="20261026033433_global_feed_and_event_scheduling.sql") await db.exec(await readFile(new URL(name, migrations), "utf8"));
   }
   await db.exec(await readFile(new URL("../supabase/tests/orbit_security.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_onboarding.sql", import.meta.url), "utf8"));
@@ -40,7 +40,12 @@ try {
   await db.exec(await readFile(new URL("../supabase/tests/orbit_social.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_marketplace.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/tests/orbit_social_connections.sql", import.meta.url), "utf8"));
-  console.log("Database checks passed: comment likes, one-level replies, parent context and pagination, safe liker lists, one-way follows and access isolation, Marketplace campus proof, ownership, photo binding, filters, saves, private inquiries, pagination, reports, email changes, profile and club reactions, idempotent comments, attachment ownership and visibility, upload binding, profile post sharing, club posts, owner events, private event choices, removal and restore, all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
+  // Verify the historical API contracts before upgrading their audience/snapshot semantics.
+  await db.exec(await readFile(new URL("20261026033433_global_feed_and_event_scheduling.sql",migrations),"utf8"));
+  await db.exec(await readFile(new URL("../supabase/tests/orbit_global_feed.sql",import.meta.url),"utf8"));
+  // Unchanged account, search, club and marketplace contracts must also pass on the upgraded schema.
+  for(const name of ["orbit_onboarding.sql","orbit_visibility.sql","orbit_clubs.sql","orbit_marketplace.sql"]) await db.exec(await readFile(new URL(`../supabase/tests/${name}`,import.meta.url),"utf8"));
+  console.log("Database checks passed: global feed and audience RLS, workspace independence, event scheduling/status and RSVP boundaries, comment likes, one-level replies, parent context and pagination, safe liker lists, one-way follows and access isolation, Marketplace campus proof, ownership, photo binding, filters, saves, private inquiries, pagination, reports, email changes, profile and club reactions, idempotent comments, attachment ownership and visibility, upload binding, profile post sharing, club posts, owner events, private event choices, removal and restore, all migrations, workspace security, resumable onboarding, housing validation, durable completion, private avatar access, cross-workspace people search, saved profile visibility, clubs, follower-only chat, idempotent sends, and chat history with private-field and anonymous-access checks. Storage uses a local schema shim; hosted uploads still need a live account test.");
 } catch (error) {
   console.error("Database check failed:", error.message, error.detail || "", error.where || "", "position", error.position || error.internalPosition || "");
   if (error.query && error.position) console.error(error.query.slice(Math.max(0, Number(error.position)-180), Number(error.position)+180));

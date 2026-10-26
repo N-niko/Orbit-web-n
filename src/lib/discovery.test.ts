@@ -46,7 +46,7 @@ describe("Orbit discovery", () => {
     expect(alex.profile).toMatchObject({ name: "Alex Morgan", major: "", year: "", bio: "", graduationYear: null });
     expect(alex.courses).toBeNull();
     expect(alex.clubIds).toBeNull();
-    expect(alex.posts).toBeNull();
+    expect(alex.posts?.map(p=>p.id)).toEqual(["post-4"]); // Authors keep access to their own history.
     expect(searchDirectory(directory, "Computer Science")).toEqual([]);
     expect(searchDirectory(directory, "Alex")[0].subtitle).toBe("Caldwell University");
     expect(visibleClubMembers(directory.people, "code-and-coffee").map(person => person.profile.id)).not.toContain("alex");
@@ -68,6 +68,6 @@ describe("Orbit discovery", () => {
     const directory = buildDirectory(createDemoData(), false);
     expect(directory.clubs).toEqual([]);
     expect(directory.people.every(person => person.courses === null && person.clubIds === null)).toBe(true);
-    expect(searchDirectory(directory, "", "event")).toHaveLength(3);
+    expect(searchDirectory(directory, "", "event")).toHaveLength(directory.events.length);
   });
 });

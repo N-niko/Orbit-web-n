@@ -8,6 +8,7 @@ export function privateJson(data: unknown, status = 200) {
 }
 
 export function databaseError(error: { code?: string; message?: string }) {
+  if (error.code === "P0006") return privateJson({ error: "This event has ended. Your previous response is saved." },409);
   if (error.code === "P0004") return privateJson({ error: "This club has reached its daily event limit. Try again tomorrow." }, 429);
   if (error.code === "42501") return privateJson({ error: "You do not have permission to change that item." }, 403);
   if (error.code === "P0002") return privateJson({ error: "That item or invite code could not be found." }, 404);

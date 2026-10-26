@@ -1,0 +1,11 @@
+# Global feed and event scheduling
+
+Apply `migrations/20261026033433_global_feed_and_event_scheduling.sql` after the existing migrations. Deploy the matching application together with it: `/api/orbit` now returns an initial eight-item `feed` page and keeps `posts` empty. Later pages use `/api/feed` with a validated timestamp/ID/kind cursor. Workspace snapshots retain their tasks, expenses and members.
+
+Existing posts are `legacy`: original workspace membership and the existing profile Posts visibility choice continue to apply. Authors always retain their own history. The setting is now labelled **Older workspace posts**. No legacy post is converted to Public or Followers Only. New posts have explicit audiences independent of that old setting; new post rows have no workspace ID. Comment, reaction, profile and attachment access all reuse `can_read_post`. Following never unlocks historical private workspace or club content.
+
+Existing campus/workspace events stay workspace-private; existing club events stay follower-only. New campus events are public to authenticated students. Only authorized club events appear in the Home Feed, once each, ordered by publication time. Public campus events remain in Events & plans.
+
+New events require start and end UTC instants (`timestamptz`); the device timezone is used for entry and display. Native datetime-local inputs use the browser’s interpretation for manually entered ambiguous daylight-saving hours. Automatic two-hour suggestions and unchanged schedule edits retain their exact UTC instants. Durations use elapsed time. Existing NULL ends are deliberately preserved and interpreted as **start + two hours**, marked Estimated end in the UI. Creators can replace that estimate by editing the schedule. Status is Upcoming before start, In progress from start up to end, and Past at/after end, consistently in SQL and TypeScript. Both RSVP choices close at end; saved choices and personal removal/restore remain available.
+
+Database tests first verify the historical contracts before the upgrade, then apply this migration and test the new contracts, including unchanged account/club/marketplace behavior. Hosted Storage itself still needs the existing live-account upload checks; local tests exercise its policy predicates with a schema shim.

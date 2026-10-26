@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OrbitData, Profile } from "@/lib/types";
+import { socialAvatars } from "./social-avatars";
 import { AVATAR_BUCKET } from "@/lib/account";
 
 /** Sign only images belonging to profiles already returned by the workspace RPC. */
 export async function withAvatars(client: SupabaseClient, data: OrbitData): Promise<OrbitData> {
+  if(data.feed)await socialAvatars(client,data.feed);
   const profiles: Profile[] = [data.profile, ...data.workspace.members,
     ...data.posts.flatMap(post => [post.author, ...post.comments.map(comment => comment.author)])];
   const paths = [...new Set(profiles.map(profile => profile.avatarPath).filter((path): path is string => Boolean(path)))];

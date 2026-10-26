@@ -1,4 +1,5 @@
 import { applyPostResponse } from "./post-social";
+import { eventStatus } from "./events";
 import type { OrbitAction, OrbitData, Profile } from "./types";
 
 /** All people, conversations, and activity in the demo are fictional. */
@@ -47,9 +48,11 @@ export function createDemoData(now = new Date()): OrbitData {
       { id: "expense-3", title: "Cleaning supplies", amount: 16.75, paidBy: "alex", createdAt: ago(2880) },
     ],
     events: [
-      { id: "event-1", title: "Campus movie night", description: "A cozy evening, a crowd favorite, and plenty of popcorn. Bring a blanket and your favorite people.", location: "The Quad · Student Center", startsAt: at(1, 19), category: "Social", cover: "violet", attendees: ["maya", "jordan", "sam"], host: "jordan" },
-      { id: "event-2", title: "Design collective", description: "An open studio for curious minds. Share something you’re working on, swap ideas, or just come to get inspired.", location: "Arts Building · Studio 204", startsAt: at(2, 17, 30), category: "Clubs", cover: "peach", attendees: ["sam", "maya"], host: "sam" },
-      { id: "event-3", title: "Coffee & catchup", description: "Start the morning slowly. Meet a few new faces over coffee and talk about whatever’s on your mind.", location: "Maple Café", startsAt: at(3, 10), category: "Wellness", cover: "green", attendees: ["alex", "jordan"], host: "maya" },
+      { id: "event-1", title: "Campus movie night", description: "A cozy evening, a crowd favorite, and plenty of popcorn. Bring a blanket and your favorite people.", location: "The Quad · Student Center", startsAt: at(1, 19), endsAt: at(1,21), audience:"public", createdAt:ago(60), category: "Social", cover: "violet", attendees: ["maya", "jordan", "sam"], host: "jordan",hostName:"Jordan Lee" },
+      { id: "event-2", title: "Design collective", description: "An open studio for curious minds. Share something you’re working on, swap ideas, or just come to get inspired.", location: "Arts Building · Studio 204", startsAt: at(2, 17, 30), endsAt:at(2,19,30), clubId:"design-collective", audience:"club", createdAt:ago(10), category: "Clubs", cover: "peach", attendees: ["sam", "maya"], host: "sam",hostName:"Sam Rivera" },
+      { id: "event-3", title: "Coffee & catchup", description: "Start the morning slowly. Meet a few new faces over coffee and talk about whatever’s on your mind.", location: "Maple Café", startsAt: at(3,23), endsAt:at(4,1), audience:"public", createdAt:ago(80), category: "Wellness", cover: "green", attendees: ["alex", "jordan"], host: "maya",hostName:"Maya Patel" },
+      {id:"event-4",title:"Open study lounge",description:"Drop in while the session is running. Bring your notes and a question.",location:"Library lounge",startsAt:ago(30),endsAt:new Date(now.getTime()+5400000).toISOString(),createdAt:ago(120),audience:"public",category:"Academic",cover:"blue",attendees:[],host:"alex",hostName:"Alex Morgan"},
+      {id:"event-5",title:"Yesterday’s campus walk",description:"A past event with your response saved.",location:"Campus green",startsAt:ago(1500),endsAt:ago(1440),createdAt:ago(2000),audience:"public",category:"Wellness",cover:"green",attendees:["alex"],response:"going",host:"maya",hostName:"Maya Patel"},
     ],
   };
 }
@@ -87,7 +90,7 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
       if (!action.body.trim() && !action.attachments?.length) throw new Error("Write a post or attach a file.");
       if (action.body.trim().length > 3000 || (action.attachments?.length ?? 0)>4) throw new Error("This post is too large.");
       if (action.id && data.posts.some(post=>post.id===action.id)) return data;
-      return { ...data, posts: [{ id: action.id ?? nextId("post", data.posts.map(post=>post.id)), author: data.profile, body: action.body.trim(), category: action.category, createdAt, likes: [], comments: [], attachments: action.attachments ?? [] }, ...data.posts] };
+      return { ...data, posts: [{ id: action.id ?? nextId("post", data.posts.map(post=>post.id)), author: data.profile, body: action.body.trim(), category: "general", audience:action.audience??"public", createdAt, likes: [], comments: [], attachments: action.attachments ?? [] }, ...data.posts] };
     }
     case "respond_post": {
       const response=action.action.type==="comment"?{...action.action,body:required(action.action.body,"Comment",1000)}:action.action;
@@ -121,16 +124,25 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
       return { ...data, expenses: data.expenses.filter((expense) => expense.id !== action.id) };
     case "create_club_event":
     case "create_event": {
-      const startsAt = new Date(action.startsAt);
+      const startsAt = new Date(action.startsAt); const endsAt=new Date(action.endsAt);
+      if(!Number.isFinite(endsAt.getTime())||endsAt<=startsAt)throw new Error("End time must be after start time.");
       if (!Number.isFinite(startsAt.getTime())) throw new Error("Choose a valid event date and time.");
       if (action.description.trim().length > 3000) throw new Error("Description must be 3000 characters or fewer.");
-      if (action.type === "create_club_event" && data.events.some(event => event.id === action.id)) return data;
-      return { ...data, events: [...data.events, { id: action.type === "create_club_event" ? action.id : nextId("event", data.events.map((event) => event.id)), title: required(action.title, "Event name", 160), description: action.description.trim(), location: required(action.location, "Location", 160), startsAt: startsAt.toISOString(), category: action.type === "create_club_event" ? "Clubs" : action.category, ...(action.type === "create_club_event" ? { clubId: action.clubId } : {}), cover: action.cover, attendees: [], host: id }].sort((a, b) => a.startsAt.localeCompare(b.startsAt)) };
+      if (action.id && data.events.some(event => event.id === action.id)) return data;
+      return { ...data, events: [...data.events, { id: action.id ?? nextId("event", data.events.map((event) => event.id)), title: required(action.title, "Event name", 160), description: action.description.trim(), location: required(action.location, "Location", 160), startsAt: startsAt.toISOString(), endsAt:endsAt.toISOString(), createdAt, audience:action.type==="create_club_event"?"club" as const:"public" as const, category: action.type === "create_club_event" ? "Clubs" : action.category, ...(action.type === "create_club_event" ? { clubId: action.clubId } : {}), cover: action.cover, attendees: [], host: id,hostName:data.profile.name }].sort((a, b) => a.startsAt.localeCompare(b.startsAt)) };
+    }
+    case "edit_event_schedule": {
+      const event=data.events.find(e=>e.id===action.id);if(!event||event.host!==id)throw new Error("Only the event creator can edit its schedule.");
+      if(!Number.isFinite(Date.parse(action.startsAt))||!Number.isFinite(Date.parse(action.endsAt))||Date.parse(action.endsAt)<=Date.parse(action.startsAt))throw new Error("End time must be after start time.");
+      return {...data,events:data.events.map(e=>e.id===action.id?{...e,startsAt:action.startsAt,endsAt:action.endsAt}:e)};
     }
     case "toggle_rsvp":
-      return { ...data, events: data.events.map((event) => event.id === action.id ? { ...event, attendees: event.attendees.includes(id) ? event.attendees.filter((attendee) => attendee !== id) : [...event.attendees, id] } : event) };
-    case "respond_event":
-      return { ...data, events: data.events.map(event => event.id === action.id ? { ...event, response: action.response, removed: false, attendees: action.response === "going" ? [...new Set([...event.attendees, id])] : event.attendees.filter(user => user !== id), attendeeCount: undefined } : event) };
+    case "respond_event": {
+      const event=data.events.find(e=>e.id===action.id);if(!event)throw new Error("Event not found.");
+      if(eventStatus(event,now.getTime())==="past")throw new Error("This event has ended. Your previous response is saved.");
+      const response=action.type==="respond_event"?action.response:event.attendees.includes(id)?"not_going":"going";
+      return {...data,events:data.events.map(e=>e.id===action.id?{...e,response,removed:false,attendees:response==="going"?[...new Set([...e.attendees,id])]:e.attendees.filter(user=>user!==id),attendeeCount:undefined}:e)};
+    }
     case "remove_event":
       if (!data.events.some(event => event.id === action.id && event.response === "not_going")) throw new Error("Choose Not going before removing an event.");
       return { ...data, events: data.events.map(event => event.id === action.id ? { ...event, removed: true } : event) };
@@ -150,7 +162,7 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
       throw new Error("Demo mode cannot connect to a shared workspace. Sign in to join using an invite code.");
     case "create_workspace": {
       const workspaceId = nextId("workspace", [data.workspace.id]);
-      return { ...data, workspace: { id: workspaceId, name: required(action.name, "Workspace name", 80), inviteCode: `DEMO${workspaceId.split("-").at(-1)?.padStart(8, "0")}`, members: [data.profile] }, posts: [], tasks: [], expenses: [], events: [] };
+      return { ...data, workspace: { id: workspaceId, name: required(action.name, "Workspace name", 80), inviteCode: `DEMO${workspaceId.split("-").at(-1)?.padStart(8, "0")}`, members: [data.profile] }, tasks: [], expenses: [] };
     }
   }
 }

@@ -36,7 +36,7 @@ describe("server action validation", () => {
     expect(orbitActionSchema.safeParse({ type: "update_visibility", field: "posts", visible: false }).success).toBe(true);
   });
   it("accepts the event colors used by the form and rejects unexpected values", () => {
-    const event = { type: "create_event", title: "Study circle", description: "Bring notes", location: "Library", startsAt: "2026-12-01T15:00:00Z", category: "Academic" };
+    const event = { type: "create_event", title: "Study circle", description: "Bring notes", location: "Library", startsAt: "2026-12-01T15:00:00Z", endsAt:"2026-12-01T17:00:00Z", category: "Academic" };
     for (const cover of ["violet", "peach", "green", "blue"]) {
       expect(orbitActionSchema.safeParse({ ...event, cover }).success).toBe(true);
     }

@@ -19,7 +19,8 @@ describe("demo data", () => {
     expect(first).not.toBe(second);
     expect(first.workspace.members).toHaveLength(4);
     expect(first.profile.email).toBe("alex@example.com");
-    expect(first.events.every((event) => new Date(event.startsAt) > now)).toBe(true);
+    expect(first.events.every(event => event.endsAt && Date.parse(event.endsAt)>Date.parse(event.startsAt))).toBe(true);
+    expect(first.events.some(event=>Date.parse(event.startsAt)<now.getTime()&&Date.parse(event.endsAt!)>now.getTime())).toBe(true);
   });
 });
 
@@ -45,7 +46,8 @@ describe("applyDemoAction", () => {
     const going = applyDemoAction(previous, { type: "toggle_rsvp", id: "event-1" }, now);
     expect(going.events[0].attendees.filter((id) => id === "alex")).toHaveLength(1);
     const notGoing = applyDemoAction(going, { type: "toggle_rsvp", id: "event-1" }, now);
-    expect(notGoing.events).toEqual(previous.events);
+    expect(notGoing.events[0].attendees).toEqual(previous.events[0].attendees);
+    expect(notGoing.events[0].response).toBe("not_going");
   });
 
   it("keeps comments on their own post and updates embedded profile references", () => {
@@ -86,16 +88,16 @@ describe("applyDemoAction", () => {
     expect(() => applyDemoAction(previous, { type: "create_task", title: "Bread", assignee: "maya", dueDate: "2026-02-30", kind: "grocery" }, now)).toThrow("valid due date");
   });
 
-  it("starts an empty personal demo workspace and never pretends to join a real one", () => {
+  it("keeps social history when starting a personal demo workspace and never pretends to join a real one", () => {
     const previous = freezeDeep(createDemoData(now));
     const next = applyDemoAction(previous, { type: "create_workspace", name: "  Oak House  " }, now);
     expect(next.workspace.name).toBe("Oak House");
     expect(next.workspace.members).toEqual([previous.profile]);
     expect(next.workspace.inviteCode).toMatch(/^DEMO\d{8}$/);
-    expect(next.posts).toEqual([]);
+    expect(next.posts).toEqual(previous.posts);
     expect(next.tasks).toEqual([]);
     expect(next.expenses).toEqual([]);
-    expect(next.events).toEqual([]);
+    expect(next.events).toEqual(previous.events);
     expect(previous.workspace.members).toHaveLength(4);
     expect(() => applyDemoAction(previous, { type: "join_workspace", code: "MAPLE26" }, now)).toThrow("Demo mode cannot connect");
   });

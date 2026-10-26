@@ -1,10 +1,11 @@
 import { threadFromPost, type PostThread, type Attachment } from "./post-social";
+import type { FollowEdge } from "./social";
 import type { OrbitData, Post, Profile } from "./types";
 import { directoryProfile, type DirectoryProfile } from "./people-search";
 
 export const visibilityLabels = {
   major: "Major", year: "Year & graduation year", bio: "About me",
-  courses: "Courses", clubs: "Clubs", posts: "Posts",
+  courses: "Courses", clubs: "Clubs", posts: "Older workspace posts",
 } as const;
 export type VisibilityField = keyof typeof visibilityLabels;
 export type ProfileVisibility = Record<VisibilityField, boolean>;
@@ -16,7 +17,7 @@ export interface DirectoryPerson {
   profile: Profile;
   courses: string[] | null;
   clubIds: string[] | null;
-  posts: (Pick<Post, "id" | "body" | "category" | "createdAt"> & { likeCount: number; liked: boolean; commentCount: number; attachments: Attachment[]; thread?: PostThread })[] | null;
+  posts: (Pick<Post, "id" | "body" | "category" | "createdAt" | "audience"> & { likeCount: number; liked: boolean; commentCount: number; attachments: Attachment[]; thread?: PostThread })[] | null;
 }
 export type SearchTarget = { type: "person" | "club" | "event"; id: string };
 export interface SearchResult extends SearchTarget { title: string; subtitle: string }
@@ -35,7 +36,7 @@ const demoDetails: Record<string, { courses: string[]; clubIds: string[]; visibi
 };
 
 /** Build the demo's visitor view before rendering or indexing any optional fields. */
-export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = defaultVisibility) {
+export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = defaultVisibility, edges:FollowEdge[] = []) {
   const profiles = new Map<string, Profile>();
   for (const profile of [...data.posts.map(post => post.author), ...data.workspace.members, data.profile]) profiles.set(profile.id, profile);
   const clubs = demo ? demoClubs : [];
@@ -52,8 +53,8 @@ export function buildDirectory(data: OrbitData, demo: boolean, ownVisibility = d
     return { profile: visibleProfile,
       courses: details && visibility.courses ? details.courses : null,
       clubIds: details && visibility.clubs ? details.clubIds : null,
-      posts: visibility.posts ? data.posts.filter(post => post.author.id === profile.id).map(post => ({ id: post.id, body: post.body,
-        category: post.category, createdAt: post.createdAt, likeCount: post.likes.length, liked: post.likes.includes(data.profile.id), commentCount: post.comments.length, attachments: post.attachments ?? [], ...(demo ? { thread: threadFromPost(post, data.profile.id, data.workspace.members) } : {}) })) : null,
+      posts: data.posts.filter(post => post.author.id === profile.id && (post.audience!=="followers" || post.author.id===data.profile.id || edges.some(e=>e.followerId===data.profile.id&&e.followedId===post.author.id)) && (post.audience && post.audience!=="legacy" || visibility.posts || profile.id===data.profile.id)).map(post => ({ id: post.id, body: post.body,
+        audience:post.audience, category: post.category, createdAt: post.createdAt, likeCount: post.likes.length, liked: post.likes.includes(data.profile.id), commentCount: post.comments.length, attachments: post.attachments ?? [], ...(demo ? { thread: threadFromPost(post, data.profile.id, data.workspace.members) } : {}) })),
     };
   });
   return { people, clubs, events: data.events.filter(event => !event.removed) };
