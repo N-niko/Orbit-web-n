@@ -1,0 +1,88 @@
+/* Final visual layer: flatter surfaces, one accent, plainer type. Loaded after every other stylesheet. */
+
+/* Decorative eyebrows, doodles and illustrations are gone; hierarchy comes from size and weight. */
+.eyebrow,.account-eyebrow,.hero-pill,.rail-title,.events-banner-label,.profile-section-eyebrow,.club-section-eyebrow,.welcome-hero,.events-banner-illustration,.shortcut-doodle,.rail-bottom,.wave{display:none!important}
+
+/* Type */
+body{font-size:14.5px;letter-spacing:0}
+h1,h2,h3,.brand,.account-brand{font-family:var(--heading);letter-spacing:-.02em}
+.secondary-view .view-heading h1,.welcome-heading h1{font-size:28px;font-weight:600;letter-spacing:-.025em;margin:0 0 6px}
+.secondary-view .view-heading,.welcome-heading{margin-bottom:24px}
+.secondary-view h2{font-weight:600;letter-spacing:-.01em}
+.muted{color:var(--muted)}
+
+/* Surfaces: hairline borders, no glow */
+.panel,.secondary-view .panel,.post-card,.connection-card,.campus-shortcut,.quick-stats>button{box-shadow:none!important;border-radius:10px!important;border-color:var(--border)!important}
+*{--shadow:none}
+.sidebar{border-right:1px solid var(--border);background:var(--surface)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border)}
+.status-strip{background:transparent;border-bottom:1px solid var(--border);color:var(--muted)}
+
+/* Navigation */
+.brand{font-size:28px;font-weight:700;letter-spacing:-.04em}
+.nav-heading{text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:600;color:var(--muted)}
+.nav-link{font-size:14px;font-weight:500;color:#4a4740;border-radius:8px}
+.nav-link:hover{background:#f1efea}
+.nav-link.active{background:var(--lavender);color:var(--purple);font-weight:600}
+.campus-label{border-radius:8px}
+
+/* Buttons */
+.btn,.account-submit,.hero-button{border-radius:8px;font-weight:600;font-size:14px;box-shadow:none}
+.btn-primary,.account-submit{background:var(--purple);color:#fff}
+.btn-primary:hover,.account-submit:hover:not(:disabled){background:var(--purple-dark)}
+.btn-secondary{background:var(--surface);border:1px solid #d6d2ca;color:var(--text)}
+.btn-secondary:hover{background:#f1efea}
+
+/* Home */
+.home-grid{gap:28px}
+.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.quick-stats>button{background:var(--surface);border:1px solid var(--border);padding:16px 18px;text-align:left}
+.quick-stats>button>svg:last-child{display:none}
+.quick-stats strong{font-size:15px;font-weight:600;color:var(--text)}
+.quick-stats small{font-size:13px;color:var(--muted);white-space:normal}
+.stat-icon{border-radius:8px}
+.campus-shortcut{background:var(--surface);border:1px solid var(--border)}
+.campus-shortcut h3{font-size:16px;margin-bottom:4px}
+.campus-shortcut-icon{display:none}
+.rail-empty{text-align:left}
+.rail-empty>svg{display:none}
+
+/* Tags, tiles and pills */
+.count-pill,.nav-count{border-radius:6px}
+.secondary-stat-icon,.avatar,.lavender,.peach,.mint,.blue{filter:saturate(.8)}
+
+/* Auth */
+.account-story{background:#1d1c22;color:#f3f1ec}
+.account-brand{color:#fff}.account-brand>span:last-child{color:#a79fff}.account-brand .logo-mark{background:#4a3fc0}
+.account-story-copy{max-width:460px}
+.account-story h1{color:#fff;font-weight:600;letter-spacing:-.035em;font-size:clamp(36px,4vw,56px);line-height:1.08}
+.account-story-copy>p{color:#bdb9b0;font-size:16px;line-height:1.65}
+.account-kicker{color:#9d99ff;letter-spacing:0;font-weight:600;font-size:14px}
+.account-story-copy{margin-top:auto;margin-bottom:auto}
+.account-content{background:var(--surface)}
+.account-page{background:var(--surface)}
+.account-tabs{border-radius:8px}
+.account-tabs button[aria-pressed=true]{box-shadow:none;border:1px solid var(--border)}
+.account-form .field :is(input,:is(select,.orbit-select-trigger)),.account-password input{border-radius:8px;font-size:14px}
+.account-demo button{background:var(--surface);border-color:#d6d2ca;color:var(--text)}
+.account-demo button:hover:not(:disabled){background:#f1efea}
+.account-content h2{font-size:30px;font-weight:600;letter-spacing:-.03em}
+@media(max-width:760px){.account-story{background:#1d1c22;padding:18px 22px}}
+
+/* Dark appearance keeps the same quiet palette */
+[data-theme=dark]{--bg:#16151a;--surface:#1e1d23;--text:#ecebe6;--muted:#a09c93;--border:#2e2c34;--purple:#9d94ff;--purple-dark:#8a80f0;--lavender:#2a2740}
+[data-theme=dark] .nav-link{color:#c9c5bc}[data-theme=dark] .nav-link:hover{background:#2a2830}
+[data-theme=dark] .btn-primary{color:#14131a}
+
+/* Events: plain header strip, flat category tiles */
+.events-banner{background:transparent!important;border:0!important;min-height:0!important;padding:0!important;margin:-8px 0 16px!important}
+.events-banner h2,.events-banner>div>p{display:none}
+.events-banner-stats{margin:0!important;color:var(--muted)}
+.event-art-orbit,.event-art-star,.event-art-small-star{display:none!important}
+
+@media(max-width:760px){
+  .quick-stats{grid-template-columns:1fr}
+  .quick-stats>button{flex-direction:row;align-items:center;gap:12px;min-width:0}
+  .quick-stats>button>span:nth-child(2){min-width:0}
+  .quick-stats strong,.quick-stats small{white-space:normal;max-width:none}
+}

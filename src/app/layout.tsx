@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Orbit — Your campus, a little closer",
-  description: "Find your people, make plans, and share everyday campus life. Your student community, all in one Orbit.",
+  title: "Orbit — Caldwell campus life",
+  description: "Roommate tasks and expenses, events, clubs and a student marketplace for Caldwell University.",
   applicationName: "Orbit"
 };
 

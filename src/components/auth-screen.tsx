@@ -10,13 +10,13 @@ import "./account.css";
 export function AccountLayout({ children, step }: { children: ReactNode; step?: number }) {
   return <main className="account-page"><section className="account-story" aria-label="Welcome to Orbit">
     <a className="account-brand" href="/" aria-label="Orbit home"><span className="logo-mark"><Orbit size={28} /></span>orbit<span>.</span></a>
-    <div className="account-story-copy"><span className="account-kicker"><GraduationCap size={16} /> MADE FOR CALDWELL</span>
-      <h1>A little closer<br />to your <em>people.</em></h1><p>Your campus. Your plans. Your everyday.<br />Find where you belong, together.</p>
-      <div className="account-art" aria-hidden="true"><div className="orbit-ring ring-one" /><div className="orbit-ring ring-two" /><span className="art-center"><Orbit size={64} strokeWidth={1} /></span><span className="art-note note-plans">✦ &nbsp; Plans worth showing up for</span><span className="art-note note-home">⌂ &nbsp; A space that feels like you</span><span className="art-spark">✳</span><span className="art-dot" /></div>
-    </div><p className="account-story-footer">YOUR CAMPUS, A LITTLE CLOSER.</p>
+    <div className="account-story-copy"><span className="account-kicker"><GraduationCap size={16} /> Caldwell University</span>
+      <h1>Campus life,<br />in one place.</h1><p>Message your roommates, split expenses, find events and clubs, and buy or sell with other students.</p>
+      
+    </div>
   </section><section className="account-content"><div className="account-card">
     {step && <ol className="account-steps" aria-label="Account setup">{["Your account", "Campus life", "Your photo"].map((label, index) => <li key={label} aria-current={step === index + 1 ? "step" : undefined} className={step > index + 1 ? "done" : step === index + 1 ? "current" : ""}><span>{step > index + 1 ? <Check size={14} /> : index + 1}</span><small>{label}</small></li>)}</ol>}
-    {children}</div><p className="account-footer">A little connection goes a long way.</p></section></main>;
+    {children}</div></section></main>;
 }
 
 export function PasswordField({ value, onChange, strong = false }: { value: string; onChange: (value: string) => void; strong?: boolean }) {
@@ -96,11 +96,11 @@ export function AuthScreen({ recovery = false, notice = "", onRecoveryDone, onDe
   const signup = mode === "signup";
   return <AccountLayout step={signup || mode === "confirm" ? 1 : undefined}>
     {(mode === "signin" || signup) && <div className="account-tabs" aria-label="Account options"><button aria-pressed={mode === "signin"} onClick={() => switchMode("signin")}>Log in</button><button aria-pressed={signup} onClick={() => switchMode("signup")}>Create an account</button></div>}
-    {mode === "confirm" ? <div className="account-confirm"><span className="account-icon"><Mail size={28} /></span><p className="account-eyebrow">ONE QUICK CHECK</p><h2>Confirm your email.</h2><p>Look for a confirmation link at <strong>{email.trim()}</strong>. Open the latest link in this browser to continue with campus life and your photo.</p><p className="account-hint">Check your spam folder too. If you already confirmed this address, log in below to continue setup.</p>{error && <p className="form-error" role="alert">{error}</p>}{message && <p className="form-success" role="status">{message}</p>}<button type="button" className="account-submit" disabled={busy || !client || resendSeconds > 0} onClick={resendConfirmation}>{busy ? "Requesting…" : resendSeconds > 0 ? `Resend available in ${resendSeconds}s` : "Resend confirmation email"}<Mail size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signin")}>Back to log in <ArrowRight size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signup")}>Use a different email</button></div> : <>
+    {mode === "confirm" ? <div className="account-confirm"><span className="account-icon"><Mail size={28} /></span><h2>Confirm your email</h2><p>Look for a confirmation link at <strong>{email.trim()}</strong>. Open the latest link in this browser to continue with campus life and your photo.</p><p className="account-hint">Check your spam folder too. If you already confirmed this address, log in below to continue setup.</p>{error && <p className="form-error" role="alert">{error}</p>}{message && <p className="form-success" role="status">{message}</p>}<button type="button" className="account-submit" disabled={busy || !client || resendSeconds > 0} onClick={resendConfirmation}>{busy ? "Requesting…" : resendSeconds > 0 ? `Resend available in ${resendSeconds}s` : "Resend confirmation email"}<Mail size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signin")}>Back to log in <ArrowRight size={17} /></button><button type="button" className="account-text" disabled={busy} onClick={() => switchMode("signup")}>Use a different email</button></div> : <>
       {(mode === "forgot") && <button className="account-back" onClick={() => switchMode("signin")}><ArrowLeft size={15} />Back to log in</button>}
-      <p className="account-eyebrow">{signup ? "LET’S START WITH YOU" : mode === "forgot" ? "A LITTLE HELP GETTING BACK" : mode === "reset" ? "A FRESH START" : "YOUR EVERYDAY ORBIT"}</p>
-      <h2>{signup ? "Find your people." : mode === "forgot" ? "Forgot your password?" : mode === "reset" ? "Choose a new password." : "Welcome back."}</h2>
-      <p className="account-intro">{signup ? "A few details, then you’re on your way." : mode === "forgot" ? "We’ll email you a link to reset it." : mode === "reset" ? "Make it something only you know." : "Good to see you. Let’s get you back in your Orbit."}</p>
+      
+      <h2>{signup ? "Create your account" : mode === "forgot" ? "Reset your password" : mode === "reset" ? "Choose a new password" : "Log in"}</h2>
+      <p className="account-intro">{signup ? "It takes about a minute." : mode === "forgot" ? "We’ll email you a link to reset it." : mode === "reset" ? "Pick a password you don’t use anywhere else." : "Log in with your email and password."}</p>
       {notice && <p className="form-error" role="alert">{notice}</p>}
       {!client && <p className="form-error" role="alert">Accounts are temporarily unavailable. Please try again later.</p>}
       <form className="account-form" onSubmit={submit}>

@@ -20,10 +20,10 @@
   margin-bottom:0
 }
 .secondary-view .eyebrow {
-  font-size:10px;
+  font-size:12px;
   font-weight:750;
   letter-spacing:1.8px;
-  color:#7b728c
+  color:#878177
 }
 .secondary-view .view-heading>.btn {
   white-space:nowrap;
@@ -37,12 +37,12 @@
 .secondary-view .muted {
   font-size:13px;
   line-height:1.6;
-  color:#797581
+  color:#827c74
 }
 .secondary-view .panel {
-  border:1px solid #eeecf2;
+  border:1px solid #f1f0ed;
   background:#fff;
-  border-radius:16px
+  border-radius:10px
 }
 .secondary-view .btn,.orbit-modal .btn {
   display:inline-flex;
@@ -56,7 +56,7 @@
   cursor:wait
 }
 .secondary-view button:focus-visible,.secondary-view a:focus-visible,.orbit-modal button:focus-visible {
-  outline:3px solid #c5afff;
+  outline:3px solid #c7c3ee;
   outline-offset:3px
 }
 .secondary-avatar {
@@ -66,7 +66,7 @@
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  color:#3f3657;
+  color:#403d50;
   font-size:12px;
   font-weight:750;
   flex-shrink:0
@@ -74,7 +74,7 @@
 .secondary-avatar-small {
   width:27px;
   height:27px;
-  font-size:9px
+  font-size:12px
 }
 .secondary-avatar-stack {
   display:flex;
@@ -106,8 +106,8 @@
   flex-shrink:0
 }
 .lavender {
-  background:#f0eaff;
-  color:#8563cc
+  background:#eeedfa;
+  color:#493cb5
 }
 .peach {
   background:#fff0e8;
@@ -142,28 +142,28 @@
   gap:8px;
   font-size:12px;
   font-weight:600;
-  color:#514b60
+  color:#5b5750
 }
 .secondary-form input,.secondary-form textarea,.secondary-form :is(select,.orbit-select-trigger) {
   box-sizing:border-box;
   width:100%;
-  border:1px solid #e4e0eb;
+  border:1px solid #e9e7e2;
   background:#fff;
   border-radius:8px;
   padding:12px 13px;
   outline:none;
   font:inherit;
   font-size:13px;
-  color:#3c354d;
+  color:#3b384a;
   line-height:1.5;
   min-height:44px
 }
 .secondary-form input:focus,.secondary-form textarea:focus,.secondary-form :is(select,.orbit-select-trigger):focus {
-  border-color:#a285df;
+  border-color:#5e53c6;
   box-shadow:0 0 0 3px #a285df15
 }
 .secondary-form input::placeholder,.secondary-form textarea::placeholder {
-  color:#797480
+  color:#817b73
 }
 .secondary-form textarea {
   resize:vertical
@@ -174,7 +174,7 @@
   gap:16px
 }
 .secondary-form .field small {
-  font-size:11px;
+  font-size:12px;
   font-weight:400
 }
 .secondary-form-actions {
@@ -182,7 +182,7 @@
   justify-content:flex-end;
   align-items:center;
   gap:10px;
-  border-top:1px solid #f0edf5;
+  border-top:1px solid #f3f2ef;
   padding-top:20px;
   margin-top:3px
 }
@@ -192,7 +192,7 @@
 .secondary-tabs {
   display:flex;
   gap:22px;
-  border-bottom:1px solid #eeecf2;
+  border-bottom:1px solid #f1f0ed;
   padding:0 24px;
   overflow-x:auto
 }
@@ -200,7 +200,7 @@
   display:flex;
   align-items:center;
   gap:8px;
-  color:#797385;
+  color:#837d75;
   background:none;
   border:0;
   border-bottom:2px solid transparent;
@@ -211,8 +211,8 @@
   white-space:nowrap
 }
 .secondary-tabs button.active {
-  color:#8665c6;
-  border-bottom-color:#9a76db
+  color:#473bb2;
+  border-bottom-color:#5b4fc4
 }
 .secondary-filter-pills {
   display:flex;
@@ -225,20 +225,20 @@
   background:transparent;
   border-radius:7px;
   padding:9px 13px;
-  font-size:11px;
+  font-size:12px;
   font-weight:550;
-  color:#797282;
+  color:#817b73;
   cursor:pointer;
   white-space:nowrap
 }
 .secondary-filter-pills button.active {
-  background:#eee7fb;
-  border-color:#e7ddf8;
-  color:#8462c4
+  background:#edebf9;
+  border-color:#e3e1f6;
+  color:#463aaf
 }
 .secondary-switch {
   display:flex;
-  background:#f5f2fa;
+  background:#eeedfa;
   padding:4px;
   border-radius:9px;
   margin-bottom:22px;
@@ -251,24 +251,24 @@
   border-radius:6px;
   font-size:12px;
   font-weight:600;
-  color:#7c7389;
+  color:#868076;
   flex:1;
   cursor:pointer
 }
 .secondary-switch button.active {
   background:white;
-  color:#8762cf;
+  color:#493db7;
   box-shadow:0 2px 5px #3a225309
 }
 .orbit-modal {
   padding:0;
-  border:1px solid #e8e2f1;
+  border:1px solid #edebe6;
   box-shadow:0 25px 100px #2e224a30;
-  border-radius:20px;
+  border-radius:10px;
   width:calc(100% - 32px);
   max-width:530px;
   max-height:calc(100dvh - 48px);
-  color:#3b344b;
+  color:#3a3748;
   background:white
 }
 .orbit-modal::backdrop {
@@ -293,7 +293,7 @@
 }
 .orbit-modal-heading p {
   margin:0;
-  color:#7a7284;
+  color:#827c74;
   font-size:12px;
   line-height:1.6
 }
@@ -307,11 +307,11 @@
   padding:27px 25px
 }
 .roommate-home-icon {
-  background:#eee6fb;
-  color:#8469b4;
+  background:#ecebf9;
+  color:#4338a8;
   width:65px;
   height:65px;
-  border-radius:17px;
+  border-radius:10px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -321,7 +321,7 @@
   flex:1
 }
 .roommate-home-info .eyebrow {
-  font-size:9px;
+  font-size:12px;
   letter-spacing:1.2px;
   margin:0 0 4px
 }
@@ -331,7 +331,7 @@
 }
 .roommate-home-info .muted {
   margin:0;
-  font-size:11px
+  font-size:12px
 }
 .roommate-home-members {
   display:flex;
@@ -341,8 +341,8 @@
   margin:0 15px
 }
 .roommate-home-members>span {
-  font-size:10px;
-  color:#7b7385
+  font-size:12px;
+  color:#837d75
 }
 .roommate-invite {
   display:grid;
@@ -350,15 +350,15 @@
   column-gap:15px;
   row-gap:7px;
   text-align:left;
-  background:#faf8fe;
-  border:1px dashed #ddcfee;
+  background:#fcfbfa;
+  border:1px dashed #d2cff1;
   border-radius:9px;
   padding:13px 16px;
-  color:#816da2;
+  color:#8f8980;
   cursor:pointer
 }
 .roommate-invite>span {
-  font-size:8px;
+  font-size:12px;
   font-weight:650;
   letter-spacing:1.25px;
   grid-column:1
@@ -366,7 +366,7 @@
 .roommate-invite strong {
   font-size:14px;
   letter-spacing:2px;
-  color:#8569af;
+  color:#4237a4;
   grid-column:1;
   font-weight:650
 }
@@ -388,20 +388,20 @@
   padding:20px
 }
 .secondary-stat p {
-  color:#7b7485;
-  font-size:10px;
+  color:#847e75;
+  font-size:12px;
   margin:0 0 7px
 }
 .secondary-stat strong {
   font-size:21px;
-  color:#5b526b;
+  color:#646059;
   font-weight:650;
   letter-spacing:-.6px
 }
 .secondary-stat strong small {
-  font-size:10px;
+  font-size:12px;
   font-weight:400;
-  color:#7b7583;
+  color:#837d75;
   letter-spacing:0
 }
 .roommate-content {
@@ -426,11 +426,11 @@
 }
 .roommate-board-heading p {
   margin:0;
-  font-size:11px
+  font-size:12px
 }
 .roommate-board-heading>.btn {
   padding:9px 12px;
-  font-size:10px;
+  font-size:12px;
   white-space:nowrap
 }
 .roommate-board>.secondary-error {
@@ -444,12 +444,12 @@
   align-items:center;
   gap:13px;
   min-height:73px;
-  border-top:1px solid #f3f0f6
+  border-top:1px solid #f5f4f1
 }
 .roommate-checkbox {
   width:20px;
   height:20px;
-  border:1.5px solid #ded7e8;
+  border:1.5px solid #e4e1db;
   background:#fff;
   color:#fff;
   border-radius:6px;
@@ -460,8 +460,8 @@
   cursor:pointer
 }
 .is-complete .roommate-checkbox {
-  background:#aa8bdc;
-  border-color:#aa8bdc
+  background:#5e53c6;
+  border-color:#5e53c6
 }
 .roommate-task-copy {
   flex:1;
@@ -471,28 +471,28 @@
   display:block;
   font-size:12px;
   font-weight:550;
-  color:#675d78;
+  color:#716c64;
   word-wrap:break-word
 }
 .roommate-task-copy>span {
   display:block;
-  font-size:10px;
-  color:#7a7481;
+  font-size:12px;
+  color:#827c73;
   margin-top:7px
 }
 .is-complete .roommate-task-copy>strong {
   text-decoration:line-through;
-  color:#7a7482
+  color:#827c74
 }
 .roommate-assignee {
   display:flex;
   align-items:center;
   gap:7px;
-  font-size:10px;
-  color:#7b7286
+  font-size:12px;
+  color:#837d75
 }
 .secondary-delete {
-  color:#7a757f!important;
+  color:#817b73!important;
   width:28px!important;
   height:28px!important
 }
@@ -515,9 +515,9 @@
   font-size:15px
 }
 .roommate-members .badge {
-  background:#f4effc;
-  color:#876ba6;
-  font-size:9px;
+  background:#eeedfa;
+  color:#908a81;
+  font-size:12px;
   min-width:22px;
   min-height:22px;
   display:flex;
@@ -534,20 +534,20 @@
 .roommate-member>.avatar {
   width:34px;
   height:34px;
-  font-size:10px
+  font-size:12px
 }
 .roommate-member>div {
   min-width:0
 }
 .roommate-member strong {
   display:block;
-  font-size:11px;
+  font-size:12px;
   font-weight:600
 }
 .roommate-member span:not(.avatar) {
   display:block;
-  color:#7a7282;
-  font-size:9px;
+  color:#817b73;
+  font-size:12px;
   margin-top:5px
 }
 .roommate-text-button {
@@ -555,11 +555,11 @@
   align-items:center;
   justify-content:center;
   gap:20px;
-  border:1px dashed #e4d8f2;
-  background:#fcfaff;
+  border:1px dashed #dbd9f4;
+  background:#fdfdfc;
   border-radius:8px;
-  color:#856aaa;
-  font-size:10px;
+  color:#918b83;
+  font-size:12px;
   padding:11px;
   width:100%;
   cursor:pointer;
@@ -575,7 +575,7 @@
   margin:14px 0 6px
 }
 .roommate-balances>.muted {
-  font-size:11px;
+  font-size:12px;
   line-height:1.7;
   margin:0 0 18px
 }
@@ -584,26 +584,26 @@
   align-items:center;
   justify-content:space-between;
   padding:13px 0;
-  border-top:1px solid #f2edf6;
-  border-bottom:1px solid #f2edf6;
-  font-size:10px;
+  border-top:1px solid #f3f2f0;
+  border-bottom:1px solid #f3f2f0;
+  font-size:12px;
   gap:8px;
-  color:#7f728a
+  color:#868076
 }
 .roommate-split-total strong {
-  color:#685674;
+  color:#6b665f;
   font-size:14px
 }
 .roommate-balance-row {
   display:flex;
   justify-content:space-between;
   padding-top:16px;
-  font-size:10px;
-  color:#7e7387;
+  font-size:12px;
+  color:#857f76;
   gap:8px
 }
 .roommate-balance-row strong {
-  font-size:10px;
+  font-size:12px;
   font-weight:500;
   color:#936f5f
 }
@@ -611,10 +611,10 @@
   color:#637c6a
 }
 .roommate-ledger-note {
-  font-size:9px;
+  font-size:12px;
   line-height:1.7;
-  color:#7b7381;
-  border-top:1px solid #f2edf6;
+  color:#817b73;
+  border-top:1px solid #f3f2f0;
   padding-top:14px;
   margin:18px 0 0
 }
@@ -622,8 +622,8 @@
   width:32px;
   height:32px;
   border-radius:9px;
-  background:#f5f0fb;
-  color:#816d9a;
+  background:#eeedfa;
+  color:#8b857c;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -636,9 +636,9 @@
 }
 .events-banner {
   min-height:255px;
-  background:#eee8f8;
-  border:1px solid #e9e0f4;
-  border-radius:18px;
+  background:#ebeaf9;
+  border:1px solid #e3e0f6;
+  border-radius:10px;
   position:relative;
   overflow:hidden;
   padding:32px 37px;
@@ -650,8 +650,8 @@
   display:flex;
   align-items:center;
   gap:6px;
-  color:#816c9b;
-  font-size:8px;
+  color:#8b857c;
+  font-size:12px;
   font-weight:650;
   letter-spacing:1.2px
 }
@@ -659,13 +659,13 @@
   font-size:33px;
   line-height:1.2;
   letter-spacing:-1px;
-  color:#6c538b;
+  color:#767068;
   margin:14px 0 11px;
   font-weight:600
 }
 .events-banner p {
-  font-size:11px;
-  color:#807091;
+  font-size:12px;
+  color:#888279;
   margin:0
 }
 .events-banner-stats {
@@ -673,18 +673,18 @@
   align-items:center;
   gap:15px;
   margin-top:22px;
-  color:#7e708c;
-  font-size:9px
+  color:#868076;
+  font-size:12px
 }
 .events-banner-stats strong {
   font-size:13px;
-  color:#876ca3;
+  color:#8f8980;
   margin-right:4px
 }
 .events-banner-stats i {
   height:12px;
   width:1px;
-  background:#cdbddd
+  background:#5e53c6
 }
 .events-banner-illustration {
   position:relative;
@@ -712,7 +712,7 @@
   top:25px;
   left:26px;
   flex-direction:column;
-  box-shadow:3px 5px 0 #d9c8e2
+  box-shadow:3px 5px 0 #dbd7cf
 }
 .events-sticker-one>span {
   font-size:32px;
@@ -734,7 +734,7 @@
   align-items:center;
   justify-content:center;
   gap:13px;
-  box-shadow:3px 5px 0 #d9c8e2
+  box-shadow:3px 5px 0 #dbd7cf
 }
 .events-sticker-two>span {
   text-align:center;
@@ -745,14 +745,14 @@
 }
 .events-banner-spark {
   position:absolute;
-  color:#846e97;
+  color:#8a847b;
   font-size:35px;
   left:8px;
   top:5px
 }
 .events-banner-circle {
   position:absolute;
-  border:1px solid #d2c1e5;
+  border:1px solid #d9d5cd;
   width:245px;
   height:245px;
   border-radius:50%;
@@ -772,24 +772,24 @@
   align-items:center;
   justify-content:center;
   gap:7px;
-  font-size:11px;
-  color:#7f728a;
+  font-size:12px;
+  color:#868076;
   background:white;
-  border:1px solid #ece4f4;
+  border:1px solid #e5e4f7;
   border-radius:7px;
   padding:9px 12px;
   white-space:nowrap;
   cursor:pointer
 }
 .events-mine-toggle.active {
-  color:#8665c2;
-  background:#f6f1ff
+  color:#463aaf;
+  background:#f9f8f7
 }
 .events-mine-toggle>span {
-  background:#ece4f8;
+  background:#e8e7f8;
   padding:1px 5px;
   border-radius:4px;
-  font-size:9px
+  font-size:12px
 }
 .events-grid {
   display:grid;
@@ -806,12 +806,12 @@
   height:180px;
   position:relative;
   overflow:hidden;
-  background:#dcd0ed;
-  color:#846b9a
+  background:#d2cff1;
+  color:#8a847b
 }
 .event-art-violet {
-  background:#dcd0ed;
-  color:#826d94
+  background:#d2cff1;
+  color:#888279
 }
 .event-art-peach {
   background:#f0d5c1;
@@ -832,7 +832,7 @@
   z-index:2
 }
 .event-art-label>span {
-  font-size:5.8px;
+  font-size:12px;
   letter-spacing:1.3px;
   font-weight:750;
   opacity:.9
@@ -844,7 +844,7 @@
   line-height:.95;
   letter-spacing:-1.4px;
   font-weight:700;
-  color:#6f5389;
+  color:#756f67;
   margin-top:10px
 }
 .event-art-peach .event-art-label>strong {
@@ -899,14 +899,14 @@
   box-shadow:0 2px 5px #6e47770a
 }
 .event-date-badge>span {
-  font-size:7px;
+  font-size:12px;
   text-transform:uppercase;
   letter-spacing:1px;
-  color:#7d7184
+  color:#827c73
 }
 .event-date-badge>strong {
   font-size:18px;
-  color:#76647e;
+  color:#78726a;
   font-weight:650;
   margin-top:2px
 }
@@ -915,8 +915,8 @@
   left:14px;
   bottom:13px;
   background:#ffffffa8;
-  color:#846f94;
-  font-size:8px;
+  color:#89837a;
+  font-size:12px;
   padding:4px 8px;
   border-radius:4px;
   font-weight:550
@@ -925,10 +925,10 @@
   padding:20px
 }
 .event-card-host {
-  font-size:7px;
+  font-size:12px;
   font-weight:650;
   letter-spacing:1px;
-  color:#7d7185;
+  color:#827c74;
   text-transform:uppercase
 }
 .event-card-body h2 {
@@ -936,11 +936,11 @@
   margin:9px 0 7px;
   line-height:1.35;
   letter-spacing:-.35px;
-  color:#72617e
+  color:#767169
 }
 .event-card-description {
-  font-size:10px;
-  color:#7b7281;
+  font-size:12px;
+  color:#817b72;
   line-height:1.7;
   margin:0 0 17px;
   min-height:50px;
@@ -953,8 +953,8 @@
   display:flex;
   flex-direction:column;
   gap:9px;
-  font-size:9px;
-  color:#7e7286
+  font-size:12px;
+  color:#837d75
 }
 .event-card-meta>span {
   display:flex;
@@ -962,7 +962,7 @@
   gap:7px
 }
 .event-card-meta svg {
-  color:#7b7282;
+  color:#817b73;
   flex-shrink:0
 }
 .event-card-footer {
@@ -972,32 +972,32 @@
   gap:9px;
   margin-top:20px;
   padding-top:16px;
-  border-top:1px solid #f3edf6
+  border-top:1px solid #f3f2f0
 }
 .event-attendees {
   display:flex;
   gap:4px;
   align-items:center;
-  font-size:9px;
-  color:#7e7285
+  font-size:12px;
+  color:#837d74
 }
 .event-attendees svg {
   margin-right:3px;
-  color:#7e7385
+  color:#837d75
 }
 .event-attendees strong {
   font-weight:600;
-  color:#81708c
+  color:#868076
 }
 .event-card-footer .btn {
-  font-size:10px;
+  font-size:12px;
   padding:8px 12px;
   min-height:32px
 }
 .event-rsvp-going {
-  background:#f1ecf9!important;
-  color:#836ba4!important;
-  border-color:#e7dcf4!important
+  background:#eeedfa!important;
+  color:#8f8980!important;
+  border-color:#e0ddf5!important
 }
 .events-cover-picker {
   padding:0;
@@ -1010,7 +1010,7 @@
   font-size:12px;
   font-weight:600;
   margin-bottom:11px;
-  color:#514b60
+  color:#5b5750
 }
 .events-cover-swatch {
   width:43px;
@@ -1021,15 +1021,15 @@
   border:2px solid transparent;
   border-radius:8px;
   cursor:pointer;
-  color:#776080
+  color:#777169
 }
 .events-cover-swatch[aria-pressed=true] {
-  border-color:#9d80c7;
+  border-color:#5448c2;
   outline:2px solid white;
   outline-offset:-4px
 }
 .events-cover-violet {
-  background:#dcd0ed
+  background:#d2cff1
 }
 .events-cover-peach {
   background:#f0d5c1
@@ -1046,7 +1046,7 @@
   justify-content:space-between;
   position:relative;
   overflow:hidden;
-  border-radius:18px;
+  border-radius:10px;
   border:1px solid #e4e9e4;
   background:#eaf0e9;
   min-height:285px;
@@ -1060,7 +1060,7 @@
   display:flex;
   align-items:center;
   gap:7px;
-  font-size:8px;
+  font-size:12px;
   font-weight:700;
   letter-spacing:1.1px;
   color:#697b6b
@@ -1074,7 +1074,7 @@
   margin:15px 0 13px
 }
 .campus-banner p {
-  font-size:11px;
+  font-size:12px;
   line-height:1.75;
   color:#6d7a6e;
   margin:0 0 22px
@@ -1083,7 +1083,7 @@
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:9px;
+  font-size:12px;
   color:#6a796d
 }
 .campus-building {
@@ -1214,15 +1214,15 @@
 }
 .campus-toolbar .secondary-filter-pills button {
   padding:9px 11px;
-  font-size:10px
+  font-size:12px
 }
 .campus-resource-search {
   display:flex;
   align-items:center;
   gap:8px;
-  border:1px solid #e9e2f0;
+  border:1px solid #eceae6;
   background:white;
-  color:#7b7284;
+  color:#827c74;
   border-radius:8px;
   padding:8px 12px;
   max-width:190px
@@ -1233,11 +1233,11 @@
   background:transparent;
   min-width:0;
   width:100%;
-  font-size:10px;
-  color:#806f8f
+  font-size:12px;
+  color:#878177
 }
 .campus-resource-search input::placeholder {
-  color:#7b7284
+  color:#827c74
 }
 .campus-resource-grid {
   display:grid;
@@ -1252,7 +1252,7 @@
   transition:border-color .2s,transform .2s
 }
 .campus-resource-card:hover {
-  border-color:#d4c3e9;
+  border-color:#c6c1ed;
   transform:translateY(-3px)
 }
 .campus-resource-top {
@@ -1267,12 +1267,12 @@
   border-radius:12px
 }
 .campus-resource-arrow {
-  color:#7c7284
+  color:#827c74
 }
 .campus-resource-category {
-  font-size:7px;
+  font-size:12px;
   font-weight:650;
-  color:#7d7186;
+  color:#837d74;
   text-transform:uppercase;
   letter-spacing:1.1px
 }
@@ -1280,12 +1280,12 @@
   font-size:16px;
   letter-spacing:-.25px;
   margin:8px 0 9px;
-  color:#776282
+  color:#79736b
 }
 .campus-resource-card>p {
-  font-size:10px;
+  font-size:12px;
   line-height:1.8;
-  color:#7d7284;
+  color:#827c74;
   margin:0 0 22px;
   flex:1
 }
@@ -1293,14 +1293,14 @@
   display:flex;
   align-items:center;
   gap:5px;
-  font-size:8px;
-  color:#7c7183;
-  border-top:1px solid #f2ecf6;
+  font-size:12px;
+  color:#817b73;
+  border-top:1px solid #f3f2ef;
   padding-top:14px
 }
 .campus-source-note {
-  font-size:9px;
-  color:#7d7385;
+  font-size:12px;
+  color:#837d75;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -1317,11 +1317,11 @@
   align-items:center;
   gap:7px;
   padding:9px 12px;
-  border:1px solid #e7dff0;
-  background:#f8f5fc;
-  color:#836f94;
+  border:1px solid #ebe9e4;
+  background:#f9f9f8;
+  color:#89837a;
   border-radius:7px;
-  font-size:10px;
+  font-size:12px;
   white-space:nowrap
 }
 .profile-layout {
@@ -1341,7 +1341,7 @@
 .profile-summary-cover {
   height:112px;
   position:relative;
-  background:#e4d9f3;
+  background:#dddaf4;
   overflow:hidden
 }
 .profile-summary-cover>span {
@@ -1350,7 +1350,7 @@
   height:170px;
   top:-70px;
   left:-35px;
-  border:1px solid #cfbde3;
+  border:1px solid #5e53c6;
   border-radius:50%;
   transform:scaleX(1.5)
 }
@@ -1360,7 +1360,7 @@
   height:170px;
   top:40px;
   right:-80px;
-  border:1px solid #cfbde3;
+  border:1px solid #5e53c6;
   border-radius:50%;
   transform:scaleX(1.5)
 }
@@ -1368,7 +1368,7 @@
   position:absolute;
   right:36px;
   top:16px;
-  color:#81718e;
+  color:#878178;
   font-size:68px;
   line-height:1;
   font-weight:400
@@ -1389,26 +1389,26 @@
 .profile-summary-content h2 {
   font-size:20px;
   margin:12px 0 6px;
-  color:#745f82
+  color:#77726a
 }
 .profile-summary-content>p:not(.profile-bio) {
-  font-size:11px;
-  color:#7e6f89;
+  font-size:12px;
+  color:#837d75;
   margin:0 0 9px
 }
 .profile-year {
   display:inline-flex;
-  background:#f4eefb;
-  border:1px solid #eee3fa;
+  background:#eeedfa;
+  border:1px solid #e9e7f8;
   border-radius:5px;
-  color:#7f6f8c;
-  font-size:8px;
+  color:#857f76;
+  font-size:12px;
   padding:5px 8px
 }
 .profile-bio {
-  font-size:11px;
+  font-size:12px;
   line-height:1.8;
-  color:#7f7287;
+  color:#847e75;
   margin:20px 0 0;
   white-space:pre-line;
   overflow-wrap:anywhere
@@ -1417,8 +1417,8 @@
   display:flex;
   align-items:center;
   justify-content:space-around;
-  border-top:1px solid #f1eaf5;
-  border-bottom:1px solid #f1eaf5;
+  border-top:1px solid #f2f0ed;
+  border-bottom:1px solid #f2f0ed;
   padding:18px 0;
   margin-top:23px
 }
@@ -1430,41 +1430,41 @@
   flex:1
 }
 .profile-summary-stats>div+div {
-  border-left:1px solid #f0e8f5
+  border-left:1px solid #f1efec
 }
 .profile-summary-stats strong {
   font-size:20px;
   font-weight:550;
-  color:#866b98
+  color:#89837a
 }
 .profile-summary-stats span {
-  font-size:8px;
-  color:#7f7087
+  font-size:12px;
+  color:#837d74
 }
 .profile-campus-line {
   display:flex;
   align-items:center;
   justify-content:center;
   gap:7px;
-  font-size:9px;
-  color:#7f7087;
+  font-size:12px;
+  color:#837d74;
   margin-top:19px
 }
 .profile-note {
   padding:0 12px;
-  color:#80718c
+  color:#868077
 }
 .profile-note h3 {
   font-size:12px;
-  color:#836f92;
+  color:#888279;
   line-height:1.5;
   margin:12px 0 7px;
   font-weight:550
 }
 .profile-note p {
-  font-size:10px;
+  font-size:12px;
   line-height:1.8;
-  color:#7d7285;
+  color:#837d74;
   margin:0
 }
 .profile-main {
@@ -1480,36 +1480,36 @@
 }
 .profile-details h2,.profile-connections h2 {
   font-size:18px;
-  color:#786381
+  color:#79736b
 }
 .profile-section-eyebrow {
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:8px;
+  font-size:12px;
   font-weight:600;
   letter-spacing:1px;
-  color:#7f708d;
+  color:#868077;
   margin-bottom:10px
 }
 .profile-details .muted,.profile-connections .muted {
-  font-size:11px;
-  color:#7e7285
+  font-size:12px;
+  color:#837d74
 }
 .profile-details .secondary-form {
   gap:21px
 }
 .profile-details .field {
-  font-size:11px;
-  color:#806f8d
+  font-size:12px;
+  color:#868076
 }
 .profile-details .secondary-form input,.profile-details .secondary-form :is(select,.orbit-select-trigger),.profile-details .secondary-form textarea {
-  color:#806e8d;
-  border-color:#ece5f2;
-  font-size:11px
+  color:#857f76;
+  border-color:#eeece9;
+  font-size:12px
 }
 .profile-details .secondary-form input::placeholder,.profile-details .secondary-form textarea::placeholder {
-  color:#7e7285
+  color:#837d74
 }
 .profile-readonly-field {
   display:flex;
@@ -1517,9 +1517,9 @@
   justify-content:space-between;
   gap:12px;
   padding:15px 0;
-  border-bottom:1px solid #f2edf6;
-  color:#80718a;
-  font-size:10px
+  border-bottom:1px solid #f3f2f0;
+  color:#857f76;
+  font-size:12px
 }
 .profile-readonly-field>span {
   display:flex;
@@ -1527,8 +1527,8 @@
   gap:8px
 }
 .profile-readonly-field>strong {
-  color:#826f8c;
-  font-size:10px;
+  color:#857f76;
+  font-size:12px;
   font-weight:500;
   overflow-wrap:anywhere;
   text-align:right
@@ -1545,10 +1545,10 @@
   align-items:center;
   gap:6px;
   color:#667b6c;
-  font-size:10px
+  font-size:12px
 }
 .profile-save-row .btn {
-  font-size:11px;
+  font-size:12px;
   padding:10px 16px
 }
 .profile-connection-row {
@@ -1556,7 +1556,7 @@
   align-items:center;
   gap:13px;
   padding:19px 0;
-  border-bottom:1px solid #f2edf6
+  border-bottom:1px solid #f3f2f0
 }
 .profile-connection-row:last-child {
   border-bottom:0;
@@ -1573,14 +1573,14 @@
 }
 .profile-connection-row strong {
   display:block;
-  font-size:11px;
-  color:#816f8b;
+  font-size:12px;
+  color:#847e76;
   font-weight:550;
   overflow-wrap:anywhere
 }
 .profile-connection-row p {
-  font-size:9px;
-  color:#7f7286;
+  font-size:12px;
+  color:#837d75;
   line-height:1.6;
   margin:5px 0 0
 }
@@ -1588,9 +1588,9 @@
   display:flex;
   align-items:center;
   gap:4px;
-  color:#80708c;
-  font-size:8px;
-  background:#f6f1fb;
+  color:#868076;
+  font-size:12px;
+  background:#eeedfa;
   padding:5px 7px;
   border-radius:5px
 }
@@ -1598,8 +1598,8 @@
   display:flex;
   align-items:flex-start;
   gap:8px;
-  color:#7d7284;
-  font-size:9px;
+  color:#827c74;
+  font-size:12px;
   line-height:1.7;
   margin:0;
   padding:0 8px
@@ -1620,7 +1620,7 @@
     font-size:35px
   }
   .event-art-label>span {
-    font-size:6.5px
+    font-size:12px
   }
 }
 @media(max-width:1100px) {
@@ -1640,7 +1640,7 @@
   .roommate-home-members .avatar {
     width:32px;
     height:32px;
-    font-size:10px
+    font-size:12px
   }
   .roommate-invite {
     padding:11px 12px;
@@ -1690,7 +1690,7 @@
     right:-52px
   }
   .event-art-label>span {
-    font-size:5px
+    font-size:12px
   }
   .campus-resource-grid {
     gap:15px
@@ -1705,7 +1705,7 @@
     max-width:155px
   }
   .campus-toolbar .secondary-filter-pills button {
-    font-size:9px;
+    font-size:12px;
     padding:8px 9px
   }
   .profile-layout {
@@ -1724,11 +1724,11 @@
     margin-bottom:22px
   }
   .secondary-view .view-heading .eyebrow {
-    font-size:8px;
+    font-size:12px;
     letter-spacing:1.5px
   }
   .secondary-view .view-heading>.btn {
-    font-size:10px
+    font-size:12px
   }
   .roommate-home-members {
     display:none
@@ -1748,13 +1748,13 @@
     padding:15px 12px
   }
   .secondary-stat p {
-    font-size:9px
+    font-size:12px
   }
   .secondary-stat strong {
     font-size:17px
   }
   .secondary-stat strong small {
-    font-size:9px
+    font-size:12px
   }
   .events-grid {
     grid-template-columns:repeat(2,minmax(0,1fr))
@@ -1767,7 +1767,7 @@
     font-size:29px
   }
   .events-banner-label {
-    font-size:6.5px
+    font-size:12px
   }
   .events-banner-illustration {
     width:270px;
@@ -1798,17 +1798,17 @@
     flex-wrap:wrap
   }
   .secondary-filter-pills button {
-    font-size:10px;
+    font-size:12px;
     padding:8px 10px
   }
   .events-mine-toggle {
-    font-size:10px
+    font-size:12px
   }
   .event-art {
     height:170px
   }
   .event-art-label>span {
-    font-size:6px
+    font-size:12px
   }
   .campus-banner {
     padding:27px;
@@ -1870,7 +1870,7 @@
     letter-spacing:-.8px
   }
   .secondary-view .view-heading .muted {
-    font-size:11px
+    font-size:12px
   }
   .secondary-view .view-heading>.btn {
     padding:9px 13px;
@@ -1891,10 +1891,10 @@
     font-size:18px
   }
   .roommate-home-info .eyebrow {
-    font-size:7px
+    font-size:12px
   }
   .roommate-home-info .muted {
-    font-size:9px
+    font-size:12px
   }
   .roommate-invite {
     margin:7px 0 0 61px;
@@ -1904,10 +1904,10 @@
     padding:9px 12px
   }
   .roommate-invite>span {
-    font-size:7px
+    font-size:12px
   }
   .roommate-invite strong {
-    font-size:10px;
+    font-size:12px;
     grid-column:2;
     letter-spacing:1.5px
   }
@@ -1936,7 +1936,7 @@
     width:16px
   }
   .secondary-stat p {
-    font-size:8px;
+    font-size:12px;
     line-height:1.4;
     margin-bottom:5px
   }
@@ -1944,7 +1944,7 @@
     font-size:17px
   }
   .secondary-stat strong small {
-    font-size:8px;
+    font-size:12px;
     line-height:1.4
   }
   .roommate-content {
@@ -1959,11 +1959,11 @@
     line-height:1.4
   }
   .roommate-board-heading p {
-    font-size:9px
+    font-size:12px
   }
   .roommate-board-heading>.btn {
     padding:8px 10px;
-    font-size:9px;
+    font-size:12px;
     gap:4px;
     min-height:31px
   }
@@ -1976,7 +1976,7 @@
   }
   .secondary-tabs button {
     padding:17px 0 14px;
-    font-size:11px;
+    font-size:12px;
     gap:6px
   }
   .secondary-tabs svg {
@@ -1990,16 +1990,16 @@
     min-height:69px
   }
   .roommate-task-copy>strong {
-    font-size:11px;
+    font-size:12px;
     line-height:1.4
   }
   .roommate-task-copy>span {
-    font-size:9px
+    font-size:12px
   }
   .roommate-assignee .avatar {
     width:23px;
     height:23px;
-    font-size:8px
+    font-size:12px
   }
   .secondary-delete {
     width:22px!important
@@ -2025,17 +2025,17 @@
     padding-right:5px
   }
   .roommate-member strong {
-    font-size:10px;
+    font-size:12px;
     line-height:1.4
   }
   .roommate-member span:not(.avatar) {
-    font-size:8px;
+    font-size:12px;
     line-height:1.4
   }
   .roommate-member>.avatar {
     width:30px;
     height:30px;
-    font-size:9px
+    font-size:12px
   }
   .roommate-text-button {
     margin-top:12px
@@ -2054,7 +2054,7 @@
     margin-bottom:20px
   }
   .roommate-expense-amount {
-    font-size:11px
+    font-size:12px
   }
   .secondary-form .form-grid {
     grid-template-columns:1fr;
@@ -2077,7 +2077,7 @@
     gap:18px
   }
   .secondary-form .field {
-    font-size:11px
+    font-size:12px
   }
   .secondary-form input,.secondary-form :is(select,.orbit-select-trigger),.secondary-form textarea {
     font-size:14px;
@@ -2092,7 +2092,7 @@
     margin:15px 0 12px
   }
   .events-banner-label {
-    font-size:5.5px;
+    font-size:12px;
     letter-spacing:.7px;
     max-width:210px;
     line-height:1.5
@@ -2101,18 +2101,18 @@
     width:11px
   }
   .events-banner p {
-    font-size:9px;
+    font-size:12px;
     max-width:165px;
     line-height:1.8
   }
   .events-banner-stats {
     gap:9px;
-    font-size:7px;
+    font-size:12px;
     margin-top:20px;
     white-space:nowrap
   }
   .events-banner-stats strong {
-    font-size:11px
+    font-size:12px
   }
   .events-banner-stats i {
     height:10px
@@ -2152,11 +2152,11 @@
     gap:2px
   }
   .secondary-filter-pills button {
-    font-size:9px;
+    font-size:12px;
     padding:8px 9px
   }
   .events-mine-toggle {
-    font-size:9px;
+    font-size:12px;
     padding:7px 10px
   }
   .events-grid {
@@ -2171,7 +2171,7 @@
     left:30px
   }
   .event-art-label>span {
-    font-size:7px
+    font-size:12px
   }
   .event-art-label>strong {
     font-size:37px
@@ -2199,7 +2199,7 @@
     right:17px
   }
   .event-date-badge>span {
-    font-size:8px
+    font-size:12px
   }
   .event-date-badge>strong {
     font-size:20px
@@ -2208,35 +2208,35 @@
     left:19px;
     bottom:17px;
     padding:5px 8px;
-    font-size:8px
+    font-size:12px
   }
   .event-card-body {
     padding:21px
   }
   .event-card-host {
-    font-size:8px
+    font-size:12px
   }
   .event-card-body h2 {
     font-size:19px;
     margin-top:10px
   }
   .event-card-description {
-    font-size:11px;
+    font-size:12px;
     min-height:auto;
     margin-bottom:19px
   }
   .event-card-meta {
-    font-size:10px;
+    font-size:12px;
     gap:10px
   }
   .event-card-footer {
     margin-top:21px
   }
   .event-attendees {
-    font-size:10px
+    font-size:12px
   }
   .event-card-footer .btn {
-    font-size:11px;
+    font-size:12px;
     min-height:35px;
     padding:9px 14px
   }
@@ -2249,18 +2249,18 @@
     line-height:1.25
   }
   .campus-university-tag {
-    font-size:6.5px;
+    font-size:12px;
     letter-spacing:.7px
   }
   .campus-university-tag svg {
     width:12px
   }
   .campus-banner p {
-    font-size:9px;
+    font-size:12px;
     max-width:180px
   }
   .campus-location {
-    font-size:8px
+    font-size:12px
   }
   .campus-building {
     position:absolute;
@@ -2278,13 +2278,13 @@
   }
   .campus-toolbar .secondary-filter-pills button {
     padding:8px;
-    font-size:9px
+    font-size:12px
   }
   .campus-resource-search {
     padding:11px 12px
   }
   .campus-resource-search input {
-    font-size:11px
+    font-size:12px
   }
   .campus-resource-grid {
     gap:11px
@@ -2308,7 +2308,7 @@
     width:16px
   }
   .campus-resource-category {
-    font-size:6px;
+    font-size:12px;
     letter-spacing:.7px
   }
   .campus-resource-card h2 {
@@ -2318,12 +2318,12 @@
     letter-spacing:-.3px
   }
   .campus-resource-card>p {
-    font-size:9px;
+    font-size:12px;
     line-height:1.7;
     margin-bottom:18px
   }
   .campus-resource-official {
-    font-size:6.5px;
+    font-size:12px;
     gap:4px;
     padding-top:12px;
     line-height:1.5;
@@ -2334,7 +2334,7 @@
     flex-shrink:0
   }
   .campus-source-note {
-    font-size:8px;
+    font-size:12px;
     text-align:left;
     align-items:flex-start;
     gap:7px;
@@ -2366,10 +2366,10 @@
     font-size:12px
   }
   .profile-year {
-    font-size:9px
+    font-size:12px
   }
   .profile-bio {
-    font-size:11px;
+    font-size:12px;
     margin-top:15px
   }
   .profile-summary-stats {
@@ -2380,10 +2380,10 @@
     font-size:21px
   }
   .profile-summary-stats span {
-    font-size:9px
+    font-size:12px
   }
   .profile-campus-line {
-    font-size:10px;
+    font-size:12px;
     margin-top:17px
   }
   .profile-note {
@@ -2406,29 +2406,29 @@
     gap:12px
   }
   .profile-readonly-field {
-    font-size:10px;
+    font-size:12px;
     padding:13px 0
   }
   .profile-readonly-field>strong {
-    font-size:10px
+    font-size:12px
   }
   .profile-save-row>.btn {
     font-size:12px
   }
   .profile-save-row>span {
-    font-size:9px
+    font-size:12px
   }
   .profile-connection-row strong {
-    font-size:11px
+    font-size:12px
   }
   .profile-connection-row p {
-    font-size:9px
+    font-size:12px
   }
   .profile-connection-row .secondary-avatar-stack {
     display:none
   }
   .profile-privacy-note {
-    font-size:9px;
+    font-size:12px;
     padding:0 5px
   }
   .profile-privacy-note svg {
@@ -2439,16 +2439,16 @@
     text-align:center
   }
   .secondary-view .empty-state>svg {
-    color:#80728d;
+    color:#878178;
     margin:0 auto 12px
   }
   .secondary-view .empty-state h3 {
     font-size:15px;
-    color:#826d90
+    color:#868077
   }
   .secondary-view .empty-state p {
-    font-size:11px;
-    color:#7e7287;
+    font-size:12px;
+    color:#847e75;
     line-height:1.7
   }
   .secondary-view .empty-state .btn {
@@ -2465,31 +2465,31 @@
 }
 /* Keep small interface text readable across desktop and mobile. */
 .secondary-view .muted {
-  color:#81758c
+  color:#888279
 }
 .roommate-home-members>span,.roommate-task-copy>span,.roommate-member span:not(.avatar),.roommate-balances>.muted,.roommate-split-total,.roommate-balance-row,.roommate-balance-row strong,.roommate-ledger-note {
-  font-size:11px
+  font-size:12px
 }
 .roommate-task-copy>strong,.roommate-member strong {
   font-size:12px
 }
 .secondary-stat p {
-  font-size:11px
+  font-size:12px
 }
 .secondary-stat strong small {
-  font-size:10px
+  font-size:12px
 }
 .roommate-home-info .eyebrow,.roommate-invite>span {
-  font-size:9px
+  font-size:12px
 }
 .roommate-home-info .muted {
   font-size:12px
 }
 .roommate-assignee {
-  font-size:11px
+  font-size:12px
 }
 .roommate-text-button {
-  font-size:11px
+  font-size:12px
 }
 .roommate-board-heading h2 {
   font-size:16px
@@ -2498,7 +2498,7 @@
   font-size:12px
 }
 .event-card-host {
-  font-size:9px
+  font-size:12px
 }
 .event-card-body h2 {
   font-size:18px
@@ -2508,16 +2508,16 @@
   min-height:60px
 }
 .event-card-meta,.event-attendees {
-  font-size:11px
+  font-size:12px
 }
 .event-card-footer .btn {
-  font-size:11px
+  font-size:12px
 }
 .event-category-badge {
-  font-size:9px
+  font-size:12px
 }
 .campus-resource-category {
-  font-size:9px
+  font-size:12px
 }
 .campus-resource-card h2 {
   font-size:17px
@@ -2526,16 +2526,16 @@
   font-size:12px
 }
 .campus-resource-official {
-  font-size:10px
+  font-size:12px
 }
 .campus-source-note {
-  font-size:11px
+  font-size:12px
 }
 .profile-summary-content>p:not(.profile-bio),.profile-bio {
   font-size:12px
 }
 .profile-year,.profile-summary-stats span,.profile-campus-line {
-  font-size:11px
+  font-size:12px
 }
 .profile-note h3 {
   font-size:13px
@@ -2553,59 +2553,59 @@
   font-size:13px
 }
 .profile-readonly-field,.profile-readonly-field>strong,.profile-connection-row p,.profile-privacy-note {
-  font-size:11px
+  font-size:12px
 }
 .profile-connection-row strong {
   font-size:12px
 }
 .profile-going {
-  font-size:10px
+  font-size:12px
 }
 .profile-save-row>span {
-  font-size:11px
+  font-size:12px
 }
 @media(max-width:580px) {
   .roommate-home-info .muted {
-    font-size:10px
+    font-size:12px
   }
   .secondary-stat p {
-    font-size:9px
+    font-size:12px
   }
   .secondary-stat strong small {
-    font-size:9px
+    font-size:12px
   }
   .roommate-board-heading h2 {
     font-size:14px
   }
   .roommate-board-heading p {
-    font-size:10px
+    font-size:12px
   }
   .roommate-task-copy>strong,.roommate-member strong {
     font-size:12px
   }
   .roommate-task-copy>span,.roommate-member span:not(.avatar) {
-    font-size:10px
+    font-size:12px
   }
   .campus-resource-card>p {
-    font-size:11px
+    font-size:12px
   }
   .campus-resource-card h2 {
     font-size:15px
   }
   .campus-resource-category {
-    font-size:8px
+    font-size:12px
   }
   .campus-resource-official {
-    font-size:9px
+    font-size:12px
   }
   .campus-source-note {
-    font-size:10px
+    font-size:12px
   }
   .profile-readonly-field,.profile-readonly-field>strong {
-    font-size:10px
+    font-size:12px
   }
   .profile-save-row>span {
-    font-size:10px
+    font-size:12px
   }
 }
 
@@ -2615,11 +2615,11 @@
 .event-plan-tabs button[aria-pressed=true]{background:var(--lavender);color:var(--purple);font-weight:650}
 .event-response-controls{display:flex;flex-direction:column;gap:9px;align-items:flex-end;min-width:0}
 .event-response-options{display:flex;flex-wrap:wrap;gap:7px}
-.event-response-options .btn{padding:9px 12px;gap:5px;font-size:11px;white-space:nowrap}
+.event-response-options .btn{padding:9px 12px;gap:5px;font-size:12px;white-space:nowrap}
 .event-response-options .event-response-selected{border-color:var(--purple);background:var(--lavender);color:var(--purple)}
-.event-response-controls .event-remove{font-size:10px;text-align:right;line-height:1.5}
-.event-response-controls>small{font-size:10px;color:var(--muted)}
-.event-response-controls .form-error{max-width:240px;font-size:11px}
+.event-response-controls .event-remove{font-size:12px;text-align:right;line-height:1.5}
+.event-response-controls>small{font-size:12px;color:var(--muted)}
+.event-response-controls .form-error{max-width:240px;font-size:12px}
 .event-card-footer{align-items:flex-start;flex-wrap:wrap;gap:14px}
 .event-attendees{padding-top:10px}
 .discovery-side .event-response-controls{align-items:flex-start}
@@ -2627,5 +2627,5 @@
 @media(max-width:450px){.event-card-footer{flex-direction:column}.event-response-controls{align-items:flex-start}.event-response-options .btn{padding:10px 14px}.event-plan-tabs button{padding:10px 12px}}
 
 /* Social audiences and event schedules use the existing form and card palette. */
-.post-audience,.event-filters label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--muted)}.post-audience :is(select,.orbit-select-trigger),.event-filters :is(select,.orbit-select-trigger){font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;min-width:140px;max-width:100%}.post-audience-note{display:block;font-size:10px;color:var(--muted);padding:12px 0 0}.feed-load-more{text-align:center;padding:25px}.event-filters{display:flex;gap:14px;margin:20px 0}.event-filters label{flex:1;max-width:240px}.event-identity{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:13px}.event-club-link{display:inline-flex;align-items:center;gap:7px;color:var(--purple);font-size:11px;text-align:left}.event-club-logo{display:inline-grid;place-items:center;width:25px;height:25px;flex-shrink:0;border-radius:50%;background:var(--lavender);font-size:16px}.event-card-club{border-color:var(--purple-light,#cfc0e5);box-shadow:inset 3px 0 var(--purple)}.event-card-host{display:block}.event-schedule{display:grid;gap:7px;min-width:0;line-height:1.7}.event-schedule>span{display:flex;align-items:flex-start;gap:7px}.event-schedule svg{flex-shrink:0;margin-top:3px}.event-schedule small{color:var(--muted);font-size:10px}.event-card-ended .event-card-art-wrap{filter:saturate(.3)}.event-card-ended{background:var(--surface-soft,var(--surface))}.event-card-ended .event-card-host,.event-card-ended .event-card-description{color:var(--muted)}.event-edit{margin-bottom:14px}.posts>.event-card{margin-bottom:18px}.event-card-footer{flex-wrap:wrap}.event-response-controls small{font-size:10px;color:var(--muted)}
-@media(max-width:500px){.event-filters{gap:10px}.event-filters label{min-width:0}.event-filters :is(select,.orbit-select-trigger){min-width:0;width:100%}.event-card-footer{align-items:flex-start;gap:14px}.event-schedule{font-size:11px}.composer-bottom .post-audience :is(select,.orbit-select-trigger){min-width:130px}}
+.post-audience,.event-filters label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}.post-audience :is(select,.orbit-select-trigger),.event-filters :is(select,.orbit-select-trigger){font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;min-width:140px;max-width:100%}.post-audience-note{display:block;font-size:12px;color:var(--muted);padding:12px 0 0}.feed-load-more{text-align:center;padding:25px}.event-filters{display:flex;gap:14px;margin:20px 0}.event-filters label{flex:1;max-width:240px}.event-identity{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:13px}.event-club-link{display:inline-flex;align-items:center;gap:7px;color:var(--purple);font-size:12px;text-align:left}.event-club-logo{display:inline-grid;place-items:center;width:25px;height:25px;flex-shrink:0;border-radius:50%;background:var(--lavender);font-size:16px}.event-card-club{border-color:var(--purple-light,#d9d5cc);box-shadow:inset 3px 0 var(--purple)}.event-card-host{display:block}.event-schedule{display:grid;gap:7px;min-width:0;line-height:1.7}.event-schedule>span{display:flex;align-items:flex-start;gap:7px}.event-schedule svg{flex-shrink:0;margin-top:3px}.event-schedule small{color:var(--muted);font-size:12px}.event-card-ended .event-card-art-wrap{filter:saturate(.3)}.event-card-ended{background:var(--surface-soft,var(--surface))}.event-card-ended .event-card-host,.event-card-ended .event-card-description{color:var(--muted)}.event-edit{margin-bottom:14px}.posts>.event-card{margin-bottom:18px}.event-card-footer{flex-wrap:wrap}.event-response-controls small{font-size:12px;color:var(--muted)}
+@media(max-width:500px){.event-filters{gap:10px}.event-filters label{min-width:0}.event-filters :is(select,.orbit-select-trigger){min-width:0;width:100%}.event-card-footer{align-items:flex-start;gap:14px}.event-schedule{font-size:12px}.composer-bottom .post-audience :is(select,.orbit-select-trigger){min-width:130px}}
