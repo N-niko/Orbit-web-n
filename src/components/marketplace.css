@@ -5,3 +5,5 @@
 
 /* Keep discovery controls compact so photos lead the browse view. */
 .market-demo-note{border:0;background:transparent;padding:0;margin-bottom:14px}.marketplace-view .view-heading{margin-bottom:20px}.market-campus{margin-bottom:17px}.market-tabs{padding-bottom:11px;margin-bottom:18px}.market-kind{margin-bottom:12px}.market-categories{scrollbar-width:none;padding-bottom:8px;margin-bottom:10px}.market-categories::-webkit-scrollbar{display:none}.market-filter-panel{margin-bottom:18px}
+
+.market-conversation{scroll-margin-top:20px}.market-message-form{flex-shrink:0}@media(max-width:760px){.market-chat-messages{height:clamp(160px,35svh,350px)}}
