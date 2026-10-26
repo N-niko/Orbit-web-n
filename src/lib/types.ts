@@ -72,6 +72,7 @@ export interface CampusEvent {
   location: string;
   startsAt: string;
   endsAt?: string | null;
+  canDelete?: boolean;
   createdAt?: string;
   audience?: "public" | "workspace" | "club";
   followingHost?: boolean;
@@ -102,10 +103,13 @@ export interface OrbitData {
   tasks: Task[];
   expenses: Expense[];
   events: CampusEvent[];
+  postFileCleanupPending?: boolean;
   feed?: import("./feed").FeedPage;
 }
 
 export type OrbitAction =
+  | { type:"delete_post";id:string;club?:boolean }
+  | { type:"delete_event";id:string }
   | { type: "create_post"; id?: string; body: string; audience?: "public" | "followers"; category?: PostCategory; attachmentIds?: string[]; attachments?: Attachment[] }
   | { type: "respond_post"; id: string; action: PostResponse }
   | { type: "toggle_like"; id: string }

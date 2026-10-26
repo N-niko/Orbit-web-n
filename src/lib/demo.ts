@@ -84,6 +84,14 @@ export function applyDemoAction(data: OrbitData, action: OrbitAction, now = new 
   const createdAt = now.toISOString();
 
   switch (action.type) {
+    case "delete_post": {
+      const post=data.posts.find(p=>p.id===action.id);if(post&&post.author.id!==id)throw new Error("Only the post author can delete it.");
+      return {...data,posts:data.posts.filter(p=>p.id!==action.id)};
+    }
+    case "delete_event": {
+      const event=data.events.find(e=>e.id===action.id);if(event&&(event.host!==id||event.canDelete===false))throw new Error("Only the event owner can delete it.");
+      return {...data,events:data.events.filter(e=>e.id!==action.id)};
+    }
     case "update_visibility":
       return { ...data, profile: { ...data.profile, visibility: { major: true, year: true, bio: true, posts: true, ...data.profile.visibility, [action.field]: action.visible } } };
     case "create_post": {

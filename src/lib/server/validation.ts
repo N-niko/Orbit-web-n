@@ -8,6 +8,8 @@ const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date in YYYY-MM-
 }, "Enter a valid date");
 
 export const orbitActionSchema = z.discriminatedUnion("type", [
+  z.object({type:z.literal("delete_post"),id:uuid,club:z.boolean().optional()}).strict(),
+  z.object({type:z.literal("delete_event"),id:uuid}).strict(),
   z.object({ type: z.literal("update_visibility"), field: z.enum(["major", "year", "bio", "posts"]), visible: z.boolean() }).strict(),
   z.object({ type: z.literal("create_post"), body: z.string().trim().max(3000), audience: z.enum(["public", "followers"]).default("public"), category: z.enum(["general", "question", "marketplace"]).optional(), id: uuid.optional(), attachmentIds: z.array(uuid).max(4).default([]) }).strict(),
 

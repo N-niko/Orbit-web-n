@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen, CalendarDays, Check, Eye, GraduationCap, Heart, LockKeyhole, MapPin, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import { defaultVisibility, visibilityLabels, visibleClubMembers, type DemoClub, type Directory, type DirectoryPerson, type ProfileVisibility, type SearchTarget, type VisibilityField } from "@/lib/discovery";
 import type { CampusEvent, OrbitAction, OrbitData } from "@/lib/types";
@@ -8,6 +8,7 @@ import { MemberAvatar } from "./secondary-shared";
 import { EventArtwork,EventIdentity,EventTiming,CreateEventDialog,useEventNow } from "./events";
 import { EventResponseControls } from "./event-controls";
 import { eventGoingCount,eventStatus,statusLabel } from "@/lib/events";
+import { DeleteContentMenu,useContentActions,contentKey } from "./content-actions";
 import { SocialPost } from "./social-post";
 import type { PostResponse, PostThread, SocialPerson } from "@/lib/post-social";
 import { profilePageSchema } from "@/lib/profile-page";
@@ -58,6 +59,7 @@ export function DiscoveryPage({ target, directory, data, demo, onOpen, onBack, o
 }
 
 function PersonPage(props: Parameters<typeof PublicPerson>[0]) {
+  const content=useContentActions(),deleted=useRef(content?.deleted);deleted.current=content?.deleted;
   const [loaded, setLoaded] = useState<DirectoryPerson | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(!props.demo);
@@ -73,13 +75,13 @@ function PersonPage(props: Parameters<typeof PublicPerson>[0]) {
     }).catch(cause => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "Profile could not load."); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [props.person.profile.id, props.demo, retry]);
+  }, [props.person.profile.id, props.demo, retry,content?.deleted]);
   async function older() {
     if (!loaded?.posts?.length) return; setLoading(true); setError("");
-    try {
+    const currentDeletion=deleted.current;try {
       const response = await fetch(`/api/profiles/${props.person.profile.id}?before=${loaded.posts.at(-1)!.id}`, { cache: "no-store" });
       const result = await response.json(); if (!response.ok) throw new Error(result.error || "Posts could not load.");
-      const parsed = profilePageSchema.parse(result);
+      const parsed = profilePageSchema.parse(result);if(deleted.current!==currentDeletion)return;
       setLoaded(current => current ? { ...current, profile: parsed.profile, posts: parsed.posts === null ? null : [...new Map([...(current.posts ?? []), ...parsed.posts].map(post => [post.id, post])).values()] } : current);
       setHasMore(parsed.hasMore);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Posts could not load."); }
@@ -94,7 +96,7 @@ function PersonPage(props: Parameters<typeof PublicPerson>[0]) {
 }
 
 function PublicPerson({ person, clubs, onOpen, own, demo, onPrivacy, respondDemo, onPostChanged, onOpenPerson, connectionsFor }: { onOpenPerson:(person:SocialPerson)=>void; connectionsFor:(person:SocialPerson)=>ReactNode; onPostChanged:()=>void; respondDemo: (id: string, action: PostResponse) => Promise<PostThread>; person: DirectoryPerson; clubs: DemoClub[]; onOpen: (target: SearchTarget) => void; own: boolean; demo: boolean; onPrivacy: () => void }) {
-  const { profile, courses, clubIds, posts } = person;
+  const content=useContentActions();const { profile, courses, clubIds } = person;const posts=person.posts?.filter(post=>!content?.deleted.has(contentKey("post",post.id)))??null;
   return <>
     <section className="panel public-profile-hero"><div className="public-profile-cover"><span>IN YOUR ORBIT</span><i>✳</i></div><div className="public-profile-intro"><MemberAvatar profile={profile} /><div><span className="discovery-pill">{own ? "Your profile · your posts" : "Student profile"}</span><h1 id="discovery-heading" tabIndex={-1}>{profile.name}</h1><p><GraduationCap size={16} />{profile.university}</p></div>{own && <button className="btn btn-secondary" onClick={onPrivacy}><ShieldCheck size={16} />Edit visibility</button>}</div></section>
     {connectionsFor(profile)}
@@ -126,5 +128,5 @@ function ClubPreview({ club, directory, onOpen }: { club: DemoClub; directory: D
 
 function EventDetail({ event, directory, userId, onAction, demo, onOpen,onOpenPerson }: {onOpenPerson:(person:SocialPerson)=>void; event: CampusEvent; directory: Directory; userId: string; onAction: (action: OrbitAction) => Promise<void>; demo: boolean; onOpen: (target: SearchTarget) => void }) {
   const host = directory.people.find(person => person.profile.id === event.host);const now=useEventNow(),[edit,setEdit]=useState(false);
-  return <><section className={`panel discovery-event-hero${eventStatus(event,now)==="past"?" event-card-ended":""}`}><EventArtwork cover={event.cover} category={event.category} title={event.title}/><div className="discovery-event-heading"><EventIdentity event={event} onOpenClub={id=>onOpen({type:"club",id})}/><span className="discovery-pill">{statusLabel[eventStatus(event,now)]}</span><h1 id="discovery-heading" tabIndex={-1}>{event.title}</h1><p>{event.description}</p></div></section><div className="discovery-columns"><section className="panel discovery-section"><h2>The details</h2><div className="event-detail-facts"><EventTiming event={event}/><p><MapPin size={20}/>{event.location}</p><p><Users size={20}/>{eventGoingCount(event)} going</p></div>{event.host===userId&&<button className="btn btn-secondary" onClick={()=>setEdit(true)}>Edit schedule</button>}<h2>Your host</h2><button className="public-member" onClick={()=>onOpenPerson({id:event.host,name:event.hostName??host?.profile.name??"Orbit student",color:host?.profile.color??"#e9e0f7",university:host?.profile.university})}>{host&&<MemberAvatar profile={host.profile}/>}<span><strong>{event.hostName??host?.profile.name??"Orbit student"}</strong><small>View student profile</small></span><ArrowUpRight size={16}/></button></section><aside className="discovery-side"><section className="panel discovery-section"><h2>Your plans</h2><p className="discovery-rsvp-copy">{demo?"Try the choices in this demo. No one will be contacted.":event.clubId?`For followers of ${event.clubName}.`:event.audience==="workspace"?"An older plan for your shared space.":"Open to all signed-in Orbit students."}</p><EventResponseControls event={event} userId={userId} onAction={onAction} now={now}/></section></aside></div>{edit&&<CreateEventDialog edit={event} onAction={onAction} onClose={()=>setEdit(false)}/>}</>;
+  return <><section className={`panel discovery-event-hero${eventStatus(event,now)==="past"?" event-card-ended":""}`}><EventArtwork cover={event.cover} category={event.category} title={event.title}/><div className="discovery-event-heading"><DeleteContentMenu kind="event" id={event.id} allowed={event.canDelete??event.host===userId}/><EventIdentity event={event} onOpenClub={id=>onOpen({type:"club",id})}/><span className="discovery-pill">{statusLabel[eventStatus(event,now)]}</span><h1 id="discovery-heading" tabIndex={-1}>{event.title}</h1><p>{event.description}</p></div></section><div className="discovery-columns"><section className="panel discovery-section"><h2>The details</h2><div className="event-detail-facts"><EventTiming event={event}/><p><MapPin size={20}/>{event.location}</p><p><Users size={20}/>{eventGoingCount(event)} going</p></div>{event.host===userId&&<button className="btn btn-secondary" onClick={()=>setEdit(true)}>Edit schedule</button>}<h2>Your host</h2><button className="public-member" onClick={()=>onOpenPerson({id:event.host,name:event.hostName??host?.profile.name??"Orbit student",color:host?.profile.color??"#e9e0f7",university:host?.profile.university})}>{host&&<MemberAvatar profile={host.profile}/>}<span><strong>{event.hostName??host?.profile.name??"Orbit student"}</strong><small>View student profile</small></span><ArrowUpRight size={16}/></button></section><aside className="discovery-side"><section className="panel discovery-section"><h2>Your plans</h2><p className="discovery-rsvp-copy">{demo?"Try the choices in this demo. No one will be contacted.":event.clubId?`For followers of ${event.clubName}.`:event.audience==="workspace"?"An older plan for your shared space.":"Open to all signed-in Orbit students."}</p><EventResponseControls event={event} userId={userId} onAction={onAction} now={now}/></section></aside></div>{edit&&<CreateEventDialog edit={event} onAction={onAction} onClose={()=>setEdit(false)}/>}</>;
 }

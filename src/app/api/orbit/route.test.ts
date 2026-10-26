@@ -1,0 +1,15 @@
+import { beforeEach,describe,it,expect,vi } from "vitest";
+const mocks=vi.hoisted(()=>({client:vi.fn(),user:vi.fn(),rpc:vi.fn(),remove:vi.fn()}));
+vi.mock("@/lib/supabase/server",()=>({getSupabaseServerClient:mocks.client}));
+import { POST,GET } from "./route";
+import { createDemoData } from "@/lib/demo";
+const id="c0000000-0000-4000-8000-000000000020",file="c0000000-0000-4000-8000-000000000011",path=`c0000000-0000-4000-8000-000000000001/${file}`;
+const request=(value:unknown,origin="https://orbit.test")=>new Request("https://orbit.test/api/orbit",{method:"POST",headers:{"content-type":"application/json",origin},body:JSON.stringify(value)});
+beforeEach(()=>{vi.resetAllMocks();mocks.client.mockResolvedValue({auth:{getUser:mocks.user},rpc:mocks.rpc,storage:{from:()=>({remove:mocks.remove})}});mocks.user.mockResolvedValue({data:{user:{id}},error:null});mocks.remove.mockResolvedValue({error:null});mocks.rpc.mockImplementation(async(name:string)=>name==="orbit_post_cleanup_files"?{data:{files:[{id:file,path}]}}:name==="orbit_post_cleanup_done"?{data:{pending:false}}:{data:{...createDemoData(),posts:[],postFileCleanupPending:true}});});
+describe("deletion API",()=>{
+ it("derives the actor from the session, deletes through the RPC and cleans files before returning the snapshot",async()=>{const response=await POST(request({type:"delete_post",id}));expect(response.status).toBe(200);expect(mocks.rpc).toHaveBeenCalledWith("orbit_mutate",{p_action:{type:"delete_post",id}});expect(mocks.remove).toHaveBeenCalledWith([path]);expect((await response.json()).postFileCleanupPending).toBe(false);});
+ it("returns successful database deletion while retaining cleanup for automatic retry",async()=>{mocks.remove.mockResolvedValue({error:{message:"offline"}});const response=await POST(request({type:"delete_post",id}));expect(response.status).toBe(200);expect((await response.json()).postFileCleanupPending).toBe(true);expect(mocks.rpc).not.toHaveBeenCalledWith("orbit_post_cleanup_done",expect.anything());});
+ it("retries pending cleanup on the next authenticated page refresh",async()=>{expect((await GET()).status).toBe(200);expect(mocks.rpc).toHaveBeenCalledWith("orbit_post_cleanup_files");});
+ it("rejects foreign origins and forged ownership without making a deletion request",async()=>{expect((await POST(request({type:"delete_event",id},"https://evil.test"))).status).toBe(403);expect((await POST(request({type:"delete_event",id,userId:id}))).status).toBe(400);expect(mocks.rpc).not.toHaveBeenCalled();});
+ it("requires authentication and preserves database ownership denials",async()=>{mocks.user.mockResolvedValueOnce({data:{user:null},error:null});expect((await POST(request({type:"delete_event",id}))).status).toBe(401);mocks.rpc.mockResolvedValueOnce({error:{code:"42501",message:"private internals"}});const response=await POST(request({type:"delete_event",id}));expect(response.status).toBe(403);expect(JSON.stringify(await response.json())).not.toContain("private internals");expect(mocks.remove).not.toHaveBeenCalled();});
+});

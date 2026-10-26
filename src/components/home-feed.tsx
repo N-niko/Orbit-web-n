@@ -7,9 +7,11 @@ import { demoFeed,feedPageSchema,mergeFeed,type FeedItem,type FeedPage } from "@
 import { postRequest,threadFromPost,type Attachment,type PostResponse,type PostThread,type SocialPerson } from "@/lib/post-social";
 import { AttachmentPicker } from "./post-attachments";
 import { MemberAvatar } from "./secondary-shared";
+import { useContentActions,contentKey } from "./content-actions";
 import { SocialPost } from "./social-post";
 import { EventCard } from "./events";
 export function Feed({data,onAction,demo,edges,respondDemo,onOpenProfile,onPostChanged,onOpenEvent,onOpenClub}:{data:OrbitData;onAction:(action:OrbitAction)=>Promise<void>;demo:boolean;edges:FollowEdge[];respondDemo:(id:string,action:PostResponse)=>Promise<PostThread>;onOpenProfile:(person:SocialPerson)=>void;onPostChanged:()=>void;onOpenEvent:(id:string)=>void;onOpenClub:(id:string)=>void}) {
+ const content=useContentActions();
  const [body,setBody]=useState(""),[audience,setAudience]=useState<"public"|"followers">("public"),[files,setFiles]=useState<Attachment[]>([]),[uploading,setUploading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");const requestId=useRef<{key:string;id:string}|null>(null);
  const [items,setItems]=useState<FeedItem[]>(data.feed?.items??[]),[cursor,setCursor]=useState<FeedPage["nextCursor"]>(data.feed?.nextCursor??null),[hasMore,setHasMore]=useState(data.feed?.hasMore??false),[loading,setLoading]=useState(false),[loadError,setLoadError]=useState(""),[demoLimit,setDemoLimit]=useState(8);
  const reading=useRef(false),loadedOlder=useRef(false),sentinel=useRef<HTMLDivElement>(null),request=useRef<AbortController|null>(null);
@@ -18,7 +20,7 @@ export function Feed({data,onAction,demo,edges,respondDemo,onOpenProfile,onPostC
  setItems(current=>mergeFeed(boundary?current.filter(item=>item.publishedAt<boundary):[],page.items));
  if(!loadedOlder.current){setCursor(page.nextCursor);setHasMore(page.hasMore);}
  },[data.feed,demo]);
- const allDemo=demo?demoFeed(data,edges):[],visible=demo?allDemo.slice(0,demoLimit):items,more=demo?allDemo.length>demoLimit:hasMore;
+ const allDemo=demo?demoFeed(data,edges):[],visible=(demo?allDemo.slice(0,demoLimit):items).filter(item=>!content?.deleted.has(contentKey(item.kind,item.id))&&(item.kind!=="event"||data.events.some(event=>event.id===item.id))),more=demo?allDemo.length>demoLimit:hasMore;
  async function loadMore(){if(reading.current||!more)return;if(demo){setDemoLimit(v=>v+8);return;}if(!cursor)return;
  reading.current=true;setLoading(true);setLoadError("");const controller=new AbortController();request.current=controller;
  try{const page=feedPageSchema.parse(await postRequest(`/api/feed?${new URLSearchParams({cursor:JSON.stringify(cursor)})}`,{signal:controller.signal}));if(controller.signal.aborted)return;loadedOlder.current=true;setItems(current=>mergeFeed(current,page.items));setCursor(page.nextCursor);setHasMore(page.hasMore);}catch(cause){if(!controller.signal.aborted)setLoadError(cause instanceof Error?cause.message:"The feed could not load.");}finally{reading.current=false;if(!controller.signal.aborted)setLoading(false);}}

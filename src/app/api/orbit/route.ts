@@ -1,6 +1,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { databaseError, privateJson } from "@/lib/server/responses";
 import { hasAllowedOrigin, orbitActionSchema } from "@/lib/server/validation";
+import { withPostCleanup } from "@/lib/server/post-cleanup";
 import { withAvatars } from "@/lib/server/avatars";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export async function GET() {
   if (auth.response) return auth.response;
   const { data, error } = await auth.client.rpc("orbit_get_data");
   if (error) return databaseError(error);
-  return privateJson(await withAvatars(auth.client, data));
+  return privateJson(await withAvatars(auth.client, await withPostCleanup(auth.client,data)));
 }
 
 export async function POST(request: Request) {
@@ -45,5 +46,5 @@ export async function POST(request: Request) {
     ? await auth.client.rpc("orbit_set_profile_visibility", { p_field: parsed.data.field, p_visible: parsed.data.visible })
     : await auth.client.rpc("orbit_mutate", { p_action: parsed.data });
   if (error) return databaseError(error);
-  return privateJson(await withAvatars(auth.client, data));
+  return privateJson(await withAvatars(auth.client, await withPostCleanup(auth.client,data)));
 }

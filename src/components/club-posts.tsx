@@ -5,11 +5,13 @@ import type { Profile } from "@/lib/types";
 import { clubPostsSchema, mergeClubMessages, type Club, type ClubPost, type DemoClubPost, type DemoClubs } from "@/lib/clubs";
 import { applyPostResponse, postJson, postRequest, threadFromPost, type Attachment, type PostResponse, type SocialPerson } from "@/lib/post-social";
 import { AttachmentPicker } from "./post-attachments";
+import { useContentActions,contentKey } from "./content-actions";
 import { SocialPost } from "./social-post";
 export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipLost,onRefresh,onOpenProfile,people}: {
  onOpenProfile:(person:SocialPerson)=>void; people:SocialPerson[];
  club:Club;profile:Profile;demo:boolean;demoData:DemoClubs;onDemoChange:Dispatch<SetStateAction<DemoClubs>>;onMembershipLost:()=>void;onRefresh:()=>Promise<void>;
 }) {
+ const content=useContentActions(),deleted=useRef(content?.deleted);deleted.current=content?.deleted;const lastDeleted=useRef(content?.deleted);
  const [posts,setPosts]=useState<ClubPost[]>([]);const [hasMore,setHasMore]=useState(false);const [ready,setReady]=useState(false);
  const [body,setBody]=useState("");const [files,setFiles]=useState<Attachment[]>([]);const [uploading,setUploading]=useState(false);const [busy,setBusy]=useState(false);const [olderBusy,setOlderBusy]=useState(false);const [error,setError]=useState("");const [retry,setRetry]=useState(0);
  const historyLoaded=useRef(false);const postsRef=useRef(posts);postsRef.current=posts;
@@ -17,6 +19,7 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{
   if(demo){setReady(true);return;}
+  if(lastDeleted.current!==content?.deleted){lastDeleted.current=content?.deleted;postsRef.current=[];setPosts([]);historyLoaded.current=false;}
   const controller=new AbortController();let active=false;
   async function refresh(){
    if(active||controller.signal.aborted)return;active=true;
@@ -34,11 +37,11 @@ export function ClubPosts({club,profile,demo,demoData,onDemoChange,onMembershipL
   }
   void refresh();const poll=window.setInterval(()=>{if(document.visibilityState==="visible")void refresh();},15000);
   return()=>{controller.abort();clearInterval(poll);};
- },[club.id,demo,retry]);
- const shown=demo?(demoData.posts[club.id]??[]).map(post=>({...post,...threadFromPost(post,profile.id,people)})):posts;
+ },[club.id,demo,retry,content?.deleted]);
+ const shown=(demo?(demoData.posts[club.id]??[]).map(post=>({...post,...threadFromPost(post,profile.id,people)})):posts).filter(post=>!content?.deleted.has(contentKey("club_post",post.id)));
  async function older(){
-  if(!posts.length)return;setOlderBusy(true);
-  try{const parsed=clubPostsSchema.parse(await postRequest(`/api/clubs/${club.id}/posts?before=${posts[0].id}`));if(mounted.current){setPosts(current=>mergeClubMessages(current,parsed.messages) as ClubPost[]);historyLoaded.current=true;setHasMore(parsed.hasMore);}}
+  if(!posts.length)return;setOlderBusy(true);const currentDeletion=deleted.current;
+  try{const parsed=clubPostsSchema.parse(await postRequest(`/api/clubs/${club.id}/posts?before=${posts[0].id}`));if(mounted.current&&deleted.current===currentDeletion){setPosts(current=>mergeClubMessages(current,parsed.messages) as ClubPost[]);historyLoaded.current=true;setHasMore(parsed.hasMore);}}
   catch(cause){if(mounted.current)setError(cause instanceof Error?cause.message:"Older posts could not load.");}finally{if(mounted.current)setOlderBusy(false);}
  }
  async function publish(event:FormEvent){

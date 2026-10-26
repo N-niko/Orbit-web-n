@@ -1,6 +1,7 @@
 "use client";
 
 import { threadFromPost, type Attachment, type PostResponse, type PostThread, type SocialPerson } from "@/lib/post-social";
+import { ContentActionsProvider,type ContentTarget } from "./content-actions";
 import { Feed } from "./home-feed";
 import { ProfileConnections } from "./social-people";
 import type { FollowEdge } from "@/lib/social";
@@ -136,6 +137,21 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
     return job;
   }, [demo, replaceData]);
 
+  const removeContent=useCallback(async (target:ContentTarget)=>{
+    if(demo&&target.kind==="club_post"){
+      const post=Object.values(demoClubData.posts).flat().find(p=>p.id===target.id);
+      if(post&&post.author.id!==dataRef.current?.profile.id)throw new Error("Only the post author can delete it.");
+      setDemoClubData(current=>({...current,posts:Object.fromEntries(Object.entries(current.posts).map(([club,posts])=>[club,posts.filter(p=>p.id!==target.id)]))}));
+      return {};
+    }
+    if(demo&&target.kind==="event"){
+      const event=dataRef.current?.events.find(e=>e.id===target.id);
+      if(event?.clubId&&!demoClubData.clubs.some(c=>c.id===event.clubId&&c.createdBy===dataRef.current?.profile.id&&c.following))throw new Error("Only the club event owner can delete it.");
+    }
+    await onAction(target.kind==="event"?{type:"delete_event",id:target.id}:{type:"delete_post",id:target.id,club:target.kind==="club_post"});
+    return {cleanupPending:Boolean(dataRef.current?.postFileCleanupPending)};
+  },[demo,demoClubData,onAction]);
+
   async function respondDemoPost(id: string, action: PostResponse) {
     await onAction({ type: "respond_post", id, action });
     const current=dataRef.current;const post=current?.posts.find(post=>post.id===id);
@@ -163,7 +179,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
 
   if (!demo && !data.profile.onboardingCompletedAt) return <Onboarding profile={data.profile} onSaved={replaceData} onSignOut={signOut} />;
 
-  const accountEvents = demo ? data.events.filter(event => !event.clubId || demoClubData.clubs.some(club => club.id === event.clubId && club.following)).map(event => event.clubId ? { ...event, clubName: demoClubData.clubs.find(club => club.id === event.clubId)?.name, clubColor:demoClubData.clubs.find(club=>club.id===event.clubId)?.color, hostName:data.workspace.members.find(p=>p.id===event.host)?.name } : {...event,followingHost:demoEdges.some(e=>e.followerId===data.profile.id&&e.followedId===event.host)}) : data.events;
+  const accountEvents = demo ? data.events.filter(event => !event.clubId || demoClubData.clubs.some(club => club.id === event.clubId && club.following)).map(event => event.clubId ? { ...event, clubName: demoClubData.clubs.find(club => club.id === event.clubId)?.name, canDelete:event.host===data.profile.id&&demoClubData.clubs.some(c=>c.id===event.clubId&&c.createdBy===data.profile.id&&c.following), clubColor:demoClubData.clubs.find(club=>club.id===event.clubId)?.color, hostName:data.workspace.members.find(p=>p.id===event.host)?.name } : {...event,canDelete:event.host===data.profile.id,followingHost:demoEdges.some(e=>e.followerId===data.profile.id&&e.followedId===event.host)}) : data.events;
   const screenData = { ...data, events: accountEvents };
   const firstName = data.profile.name.split(" ")[0];
   const profileVisibility = demo ? visibility : { ...defaultVisibility, ...data.profile.visibility };
@@ -172,7 +188,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
   const openTasks = data.tasks.filter(task => !task.completed && task.kind === "task");
   const upcoming = sortEvents(accountEvents.filter(event => !event.removed && eventStatus(event)!=="past"));
 
-  return <div className="orbit-layout"><a className="skip-link" href="#main-content">Skip to content</a>
+  return <ContentActionsProvider viewerId={data.profile.id} remove={removeContent} notify={notify}><div className="orbit-layout"><a className="skip-link" href="#main-content">Skip to content</a>
     {menu && <button className="nav-backdrop" aria-label="Close navigation" onClick={() => setMenu(false)} />}
     <aside className={`sidebar${menu ? " sidebar-open" : ""}`}>
       <button className="brand" onClick={() => navigate("home")} aria-label="Orbit home"><span className="logo-mark"><Orbit size={29} strokeWidth={1.6} /></span><span>orbit<span className="brand-dot">.</span></span></button>
@@ -209,7 +225,7 @@ function OrbitWorkspace({ demo, onDemo, onExitDemo, initialMarketplace, initialL
     </main></div>
     {toast && <div className="toast" role="status"><Check size={17} />{toast}</div>}
     {help && <ViewModal title="How Orbit works" onClose={() => setHelp(false)}><div className="help-content"><div><Home /><p><strong>Feed & profile</strong>Home feed posts go to your shared space. Other signed-in students can read, like, and comment on your posts from your profile. The Posts switch in My profile controls all of them.</p></div><div><ShoppingBag /><p><strong>Marketplace</strong>Use a confirmed Caldwell email to buy, sell, or post Wanted requests. Save finds and contact sellers privately. Arrange pickup in a public place; Orbit does not process payments.</p></div><div><Users /><p><strong>Clubs</strong>Follow a club to share posts and files, like and comment, chat, and see its events. Club owners create club events.</p></div><div><CalendarDays /><p><strong>Events & plans</strong>Campus events are public; club events are for followers. Choose Going or Not going until an event ends. Remove hides a declined plan; restore it from Removed.</p></div><div><Check /><p><strong>Roommates</strong>Share an invite code to connect your space’s tasks and expenses. Expense tracking records spending; it does not send money.</p></div><p className="muted">{demo ? "The demo uses fictional data. Changes reset when you leave." : "Campus hub links to Caldwell services. Orbit is an independent student project."}</p></div></ViewModal>}
-  </div>;
+  </div></ContentActionsProvider>;
 }
 
 function CampusIllustration() { return <svg className="hero-illustration" viewBox="0 0 350 300" fill="none" aria-hidden="true"><ellipse cx="185" cy="163" rx="132" ry="88" transform="rotate(-32 185 163)" stroke="#b4a0e5" strokeWidth="1" strokeDasharray="5 6" /><circle cx="291" cy="94" r="7" fill="#a18acb" /><circle cx="83" cy="203" r="5" fill="#c0b0e3" /><path d="M269 224h51M294 199v50M282 212l26 26M308 212l-26 26" stroke="#a28bcf" strokeWidth="2" /><path d="M52 65h27M65.5 51.5v27" stroke="#9b83ca" strokeWidth="2"/><rect x="107" y="71" width="156" height="184" rx="14" transform="rotate(10 107 71)" fill="#c9b8e9"/><rect x="93" y="58" width="156" height="184" rx="14" transform="rotate(-8 93 58)" fill="#fbf8f2" stroke="#ded5eb"/><path d="M113 78l115-16" stroke="#ddd5e9"/><circle cx="113" cy="78" r="3" fill="#b5a5d0"/><circle cx="123" cy="77" r="3" fill="#b5a5d0"/><circle cx="133" cy="76" r="3" fill="#b5a5d0"/><path d="M131 118q14-31 42-19q20 8 13 29l-17 11-30-2-8-19Z" fill="#4c416b"/><ellipse cx="160" cy="126" rx="20" ry="25" transform="rotate(-8 160 126)" fill="#eab596"/><path d="M139 118q25 1 28-19q18 12 15 26" fill="#4c416b"/><path d="M158 149l-4 17 22 2-6-21" fill="#eab596"/><path d="M125 175q10-24 31-17q12 11 21-3q26-3 38 29l-4 26-92 13 6-48Z" fill="#8573b5"/><path d="M129 185l-7 22 75-11" stroke="#e9b294" strokeWidth="14" strokeLinecap="round"/><path d="M177 173l35-5 13 30-36 5-12-30Z" fill="#c7d9c5"/><path d="M185 178l21-3M190 186l15-2" stroke="#7e967b" strokeWidth="2"/><rect x="202" y="39" width="99" height="64" rx="12" transform="rotate(8 202 39)" fill="white" stroke="#e6dff0"/><rect x="216" y="54" width="28" height="28" rx="8" transform="rotate(8 216 54)" fill="#eae2f8"/><path d="M222 61l14 2M224 59l-2 15 15 2 2-15M221 66l17 2" stroke="#8c74b2" strokeWidth="1.6"/><path d="M254 63l30 4M253 73l20 3" stroke="#b5a9c6" strokeWidth="4" strokeLinecap="round"/><rect x="42" y="217" width="139" height="48" rx="24" transform="rotate(-8 42 217)" fill="white" stroke="#e6dff0"/><circle cx="67" cy="239" r="13" fill="#d2dec9"/><path d="M62 239l4 4 8-10" stroke="#6c8263" strokeWidth="2" strokeLinecap="round"/><path d="M92 231l64-9M93 241l44-6" stroke="#b3a4c8" strokeWidth="4" strokeLinecap="round"/><path d="M282 151l3 8 9 1-7 6 2 9-8-5-8 4 2-9-6-6 9-1 4-7Z" fill="#f4cc92"/></svg>; }
